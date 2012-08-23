@@ -1,0 +1,122 @@
+<html lang="en">
+  <head>
+    <title>websnoed</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+      body {
+        background-color: #000;
+        margin: 10px;
+        overflow: hidden;
+      }
+    </style>
+    <link href="static/css/style.css" rel="stylesheet">
+    <script type="text/javascript" src="/static/js/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="static/socket.io.js"></script>
+    <script type="text/javascript" src="/static/js/Three.js"></script>
+    <script type="text/javascript" src="/static/js/pmtpos.js"></script>
+    <script type="text/javascript" src="/static/js/flot/jquery.flot.min.js"></script>
+    <script type="text/javascript" src="static/js/websnoed.js"></script>
+
+    <script>    
+      WEB_SOCKET_SWF_LOCATION = "/static/WebSocketMain.swf";
+      WEB_SOCKET_DEBUG = true;
+
+      var socket = io.connect();
+
+      socket.on('connect', function () {
+        $('#chat').addClass('connected');
+      });
+
+      socket.on('alarm', function (msg) {
+        $('#event-metadata').append($('<p>').append($('<em>').text(msg)));
+      });
+
+      socket.on('event', function (msg) {
+        $('#lines').append($('<p>').append($('<em>').text(msg)));
+      });
+
+      socket.on('reconnect', function () {
+        $('#lines').html('');
+        initialize([]);
+        message('System', 'Reconnected to the server');
+      });
+
+      socket.on('reconnecting', function () {
+        message('System', 'Attempting to re-connect to the server');
+      });
+
+      socket.on('error', function (e) {
+        message('System', e ? e : 'A unknown error occurred');
+      });
+
+      function message (from, msg) {
+        $('#lines').append($('<p>').append($('<b>').text(from), msg));
+      }
+
+      function initialize (subs) {
+        socket.emit('initialize', [], function () {
+          return false;
+        });
+      }
+
+      // DOM manipulation
+      $(document).ready(function () {
+        initialize([]);
+        websnoed.init();
+
+        websnoed.plots = {
+          charge: $.plot($("#plot-charge"), [{label: 'qhs', data: [[0,0],[4096,0]]}], websnoed.plot_options),
+          time: $.plot($("#plot-time"), [{label: 'time', data: [[0,0],[4096,0]]}], websnoed.plot_options)
+        };
+      });
+
+      socket.on('event', function(data) {
+        data = $.parseJSON(data);
+        // detector
+        var nhits = data.t.length;
+
+        var keep = new Array(prevHits.length);
+        for (var icurr=0; icurr<nhits; icurr++) {
+          for (var iprev=0; iprev<prevHits.length; iprev++) {
+            if (data.id[icurr] == prevHits[iprev]) {
+              keep[iprev] = true;
+            }
+          }
+          var material = new THREE.ParticleCanvasMaterial({
+            color: getJetColorString(1.0*data.t[icurr]/4096, true),
+            program: particleSurfaceProgram
+          });
+          pmts[data.id[icurr]].material = material;
+          var ccc = getCCC(data.id[icurr]);
+          var channel_selector = "#channel-" + ccc.crate + '_' + ccc.card + '_' + ccc.channel;
+          $(channel_selector).css('background',getJetColorString(1.0*data.t[icurr]/4096));
+        }
+
+        for (var ikeep=0; ikeep<keep.length; ikeep++) {
+        if (!keep[ikeep]) {
+        pmts[prevHits[ikeep]].material = unhitMaterial;
+        var ccc = getCCC(prevHits[ikeep]);
+        var channel_selector = "#channel-" + ccc.crate + '_' + ccc.card + '_' + ccc.channel;
+        $(channel_selector).css('background','#333');
+        }
+        }
+        websnoed.render();
+        delete keep;
+
+        prevHits = data.id;
+
+        // plots
+        websnoed.update_plot('charge', data.qhist);
+        websnoed.update_plot('time', data.thist);
+
+        // metadata
+        $("#meta-nhit").html('<strong>NHIT</strong>: ' + data.nhit);
+        $("#meta-gtid").html('<strong>GTID</strong>: ' + data.gtid);
+      });
+
+    </script>
+
+  </head>
+</html>
+
