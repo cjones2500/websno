@@ -1,4 +1,4 @@
-var fooo = 'hey'
+var PI2 = Math.PI * 2;
 
 var websnoed = (function() {
   var wsed = {
@@ -17,8 +17,29 @@ var websnoed = (function() {
 
     radius: 375,
     theta: 45,
-    phi: 60  
+    phi: 60,
+
+    NPMTS: pmtpos.x.length,
+    pmts: [],
+    prevHits: new Array(),
+
+    particleSurfaceProgram: function(context) {
+      context.beginPath();
+      context.arc(0, 0, 1, 0, PI2, true);
+      context.closePath();
+      context.fill();
+    },
   };
+
+  wsed.hitMaterial = new THREE.ParticleCanvasMaterial({
+    color: 0xff0000,
+    program: wsed.particleSurfaceProgram
+  });
+
+  wsed.unhitMaterial = new THREE.ParticleCanvasMaterial({
+    color: 0x555555,
+    program: wsed.particleSurfaceProgram
+  });
 
   wsed.init = function() {
     // div elements (plots, etc.)
@@ -108,13 +129,13 @@ var websnoed = (function() {
     wsed.onMouseDownPosition = new THREE.Vector2();
     wsed.ray = new THREE.Ray(wsed.camera.position, null);
 
-    for (var ipmt = 0; ipmt < NPMTS; ipmt++) {
-      var particle = new THREE.Particle(unhitMaterial);
+    for (var ipmt = 0; ipmt < wsed.NPMTS; ipmt++) {
+      var particle = new THREE.Particle(wsed.unhitMaterial);
       particle.position.x = pmtpos.x[ipmt]/50;
       particle.position.y = pmtpos.y[ipmt]/50;
       particle.position.z = pmtpos.z[ipmt]/50;
       wsed.scene.add(particle);
-      pmts.push(particle);
+      wsed.pmts.push(particle);
     }
 
     wsed.renderer = new THREE.CanvasRenderer();
@@ -128,6 +149,48 @@ var websnoed = (function() {
     document.addEventListener('mousewheel', wsed.events.onDocumentMouseWheel, false);
 
     wsed.renderer.render(wsed.scene, wsed.camera);
+  };
+
+  wsed.update = function(data) {
+    var nhits = data.t.length;
+
+    var keep = new Array(wsed.prevHits.length);
+    for (var icurr=0; icurr<nhits; icurr++) {
+      for (var iprev=0; iprev<wsed.prevHits.length; iprev++) {
+        if (data.id[icurr] == wsed.prevHits[iprev]) {
+          keep[iprev] = true;
+        }
+      }
+      var material = new THREE.ParticleCanvasMaterial({
+        color: wsed.colors.jet(1.0*data.t[icurr]/4096, true),
+        program: wsed.particleSurfaceProgram
+      });
+      wsed.pmts[data.id[icurr]].material = material;
+      var ccc = getCCC(data.id[icurr]);
+      var channel_selector = "#channel-" + ccc.crate + '_' + ccc.card + '_' + ccc.channel;
+      $(channel_selector).css('background', wsed.colors.jet(1.0*data.t[icurr]/4096));
+    }
+
+    for (var ikeep=0; ikeep<keep.length; ikeep++) {
+      if (!keep[ikeep]) {
+        wsed.pmts[wsed.prevHits[ikeep]].material = wsed.unhitMaterial;
+        var ccc = getCCC(wsed.prevHits[ikeep]);
+        var channel_selector = "#channel-" + ccc.crate + '_' + ccc.card + '_' + ccc.channel;
+        $(channel_selector).css('background','#333');
+      }
+    }
+    wsed.render();
+    delete keep;
+
+    wsed.prevHits = data.id;
+
+    // plots
+    wsed.update_plot('charge', data.qhist);
+    wsed.update_plot('time', data.thist);
+
+    // metadata
+    $("#meta-nhit").html('<strong>NHIT</strong>: ' + data.nhit);
+    $("#meta-gtid").html('<strong>GTID</strong>: ' + data.gtid);
   };
 
   wsed.render = function() {
@@ -192,6 +255,38 @@ var websnoed = (function() {
     }
   };
 
+  // colors
+  wsed.colors = {
+    jet: function(val, hex) {
+      function clamp(val, min, max) {
+        return Math.max(min, Math.min(max, val));
+      }
+
+      var red   = Math.floor(clamp(255 * Math.min(4 * val - 1.5, -4 * val + 4.5), 0, 255));
+      var green = Math.floor(clamp(255 * Math.min(4 * val - 0.5, -4 * val + 3.5), 0, 255));
+      var blue  = Math.floor(clamp(255 * Math.min(4 * val + 0.5, -4 * val + 2.5), 0, 255));
+
+      if (hex)
+        return wsed.colors.rgb2hex(red, green, blue);
+
+      return 'rgb(' + red + ',' + green + ',' + blue + ')'
+    },
+
+    rgb2hex: function(R,G,B) {
+      function hexify(n) {
+        n = parseInt(n,10);
+        if (isNaN(n))
+           return "00";
+        n = Math.max(0,Math.min(n,255));
+        return "0123456789ABCDEF".charAt((n-n%16)/16) + "0123456789ABCDEF".charAt(n%16);
+      }
+
+      var s = hexify(R) + hexify(G) + hexify(B);
+      return '0x' + s;
+    }
+  };
+
+
   // plots
   wsed.plot_options = {
     series: { shadowSize: 0 }, // drawing is faster without shadows
@@ -210,65 +305,11 @@ var websnoed = (function() {
   return wsed;
 }());
 
-// canvas
-var NPMTS = pmtpos.x.length;
-var PI2 = Math.PI * 2;
-
-var pmts = [];
-var prevHits = new Array();
-
-
-var particleSurfaceProgram = function(context) {
-  context.beginPath();
-  context.arc(0, 0, 1, 0, PI2, true);
-  context.closePath();
-  context.fill();
-};
-
-var hitMaterial = new THREE.ParticleCanvasMaterial({
-  color: 0xff0000,
-  program: particleSurfaceProgram
-});
-
-var unhitMaterial = new THREE.ParticleCanvasMaterial({
-  color: 0x555555,
-  program: particleSurfaceProgram
-});
-
 function getCCC(lcn) {
   return {
     'crate': (lcn >> 9) & ((1 << 5) - 1),
     'card': (lcn >> 5) & ((1 << 4) - 1),
     'channel': (lcn >> 0) & ((1 << 5) - 1)
   }
-}
-
-
-function clamp(val, min, max) {
-  return Math.max(min, Math.min(max, val));
-}
-
-function getJetColorString(val, hex) {
-  var red   = Math.floor(clamp(255 * Math.min(4 * val - 1.5, -4 * val + 4.5), 0, 255));
-  var green = Math.floor(clamp(255 * Math.min(4 * val - 0.5, -4 * val + 3.5), 0, 255));
-  var blue  = Math.floor(clamp(255 * Math.min(4 * val + 0.5, -4 * val + 2.5), 0, 255));
-
-  if (hex)
-    return rgbToHex(red, green, blue);
-
-  return 'rgb(' + red + ',' + green + ',' + blue + ')'
-}
-
-function rgbToHex(R,G,B) {
-  var s = toHex(R) + toHex(G) + toHex(B);
-  return '0x' + s;
-}
-
-function toHex(n) {
-  n = parseInt(n,10);
-  if (isNaN(n)) return "00";
-  n = Math.max(0,Math.min(n,255));
-  return "0123456789ABCDEF".charAt((n-n%16)/16)
-  + "0123456789ABCDEF".charAt(n%16);
 }
 
