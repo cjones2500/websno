@@ -21,6 +21,6 @@ setup(
     ],
     packages = ['snostream'],
     scripts = ['bin/snostream'],
-    install_requires = [],
+    install_requires = ['gevent-socketio'],
 )
 
