@@ -47,9 +47,7 @@ Server
 ------
 * python socketio + gevent wsgi
 * orcaroot, etc. -> unpack -> queue or event -> socketio namespaces --subfilter--> client
-* server side is a stack of fixed-length queues + most recent sample for each queue
-  * queue elements represent a time slice
-  * incoming data is binned in time and appended to queue
+* server side is a stack of queue
   * one queue for every piece of data coming in (tens of thousands)
 
 * does not replace logging, but keeps a shallow buffer of time-binned historical data where relevant
@@ -58,6 +56,28 @@ Server
 * some data does not need to be buffered: pmt data comes in, emitted to namespaces as event, and they send it or drop it depending on the client event display filter settings.
 
 example: there is a queue for cmos rate of each channel. when a cmos rate record comes off the data stream, it gets put into the current queue element.
+
+### Storage backend
+to store historical data (why not?), need a non-volatile storage backend. this should be abstracted from the server as a thing that gets a named piece of data for a specified time interval.
+
+Backend possbilities:
+* CouchBase with disk backing (preferred)
+* CouchDB
+* In-memory object
+
+### Input streams
+data arrives from some very different sources, and may go into queues (think cmos rates) or directly to clients (live event data). this also requires some abstraction, but in some ways clients need to know about sources ("should i show the event back button?").
+
+Some data sources:
+* RAT ROOT/ZDAB file (event data)
+* Dispatcher (event data)
+* ORCADB (run configuration and status data)
+* Slow controls -> CouchDB (slow monitoring data)
+* Calibration systems -> CouchDB?
+* Orca -> ZMQ OrcaRoot? (fast monitoring/status info)
+* Webcams -> HTTP
+* SNOOP -> CouchDB/CouchBase
+* Data Flow -> CouchDB
 
 Client
 ------
