@@ -46,16 +46,14 @@ var websnoed = (function() {
     wsed.container = document.createElement('div');
     document.body.appendChild(wsed.container);
 
-    var event_metadata = document.createElement('div');
+    var event_metadata = document.createElement('span');
     event_metadata.style.position = 'absolute';
     event_metadata.id = 'event-meta';
     event_metadata.style.top = '10px';
-    event_metadata.style.width = '300px';
-    event_metadata.style.height = '105px';
     event_metadata.style.color = 'white';
-    event_metadata.style.background = '0xaaa';
+    event_metadata.style.background = 'rgba(1,1,1,0.8)';
     event_metadata.style.border = 'solid 1px 0x55555';
-    event_metadata.innerHTML = '<div style="border:solid 1px 0x55555"><div id="meta-nhit"></div><div id="meta-gtid"></div></div>';
+    event_metadata.innerHTML = '<span id="meta-nhit"></span><br/><span id="meta-gtid"></span>';
     wsed.container.appendChild(event_metadata);
 
     var crates = document.createElement('div');
@@ -78,7 +76,7 @@ var websnoed = (function() {
     charge_plot.style.width = '300px';
     charge_plot.style.height = '175px';
     charge_plot.style.color = 'white';
-    charge_plot.style.background = 'black';
+    charge_plot.style.background = 'rgba(1,1,1,0.8)';
     charge_plot.style.textAlign = 'center';
     wsed.container.appendChild(charge_plot);
 
@@ -89,14 +87,31 @@ var websnoed = (function() {
     time_plot.style.width = '300px';
     time_plot.style.height = '175px';
     time_plot.style.color = 'white';
-    time_plot.style.background = 'black';
+    time_plot.style.background = 'rgba(1,1,1,0.8)';
     time_plot.style.textAlign = 'center';
     wsed.container.appendChild(time_plot);
+
+    // control ui
+    var control_widget = document.createElement('div');
+    control_widget.style.position = 'absolute';
+    control_widget.id = 'control-widget';
+    control_widget.style.top = '560px';
+    control_widget.style.width = '300px';
+    control_widget.style.height = '225px';
+    control_widget.style.color = '#fff';
+    control_widget.style.background = 'rgba(255,255,255,0.5)';
+    control_widget.style.border = 'solid 1px #aaa';
+    control_widget.style.textAlign = 'left';
+    wsed.container.appendChild(control_widget);
+
+    var control_html = '<span style="font-size:large;font-weight:bold;">Event Control</span><br/><div style="text-align:center"><button id="control-back">&lt;</button>&nbsp;<button id="control-pause">x</button>&nbsp;<button id="control-forward">&gt;</button></div><br/><form id="control-settings"><table style="font-size:small"><tr><th><label for="nhit_threshold">NHIT Threshold</label></th><td><input id="nhit_threshold" type="text"/></td></tr><tr><th><label for="trigger_type">Trigger Type</th><td><input id="trigger_type"/></td></tr></table><div style="text-align:center"><button>Set</button></div></form>';
+
+    $('#control-widget').html(control_html);
 
     // crate view
     var html = '<table style="font-size:4pt"><tr>';
     for (var icrate=0; icrate<19; icrate++) {
-      html += '<td><table cellspacing="1px" cellpadding="1px">';
+      html += '<td><table style="background:rgba(1,1,1,0.75);padding:2px" cellspacing="1px" cellpadding="1px">';
       for (var ichan=0; ichan<32; ichan++) {
         html += '<tr>'
         for (var icard=0; icard<16; icard++) {
@@ -196,6 +211,12 @@ var websnoed = (function() {
   wsed.render = function() {
     wsed.renderer.render(wsed.scene, wsed.camera);
   };
+
+  // control ui
+  wsed.control = (function() {
+    control = {};
+    return control;
+  }());
 
   // events
   wsed.events = {

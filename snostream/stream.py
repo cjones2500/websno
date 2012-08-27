@@ -4,12 +4,12 @@ Data sources run in separate multiprocessing Processes and push their data via
 a user-provided callback.
 '''
 
-import multiprocessing
+import threading
 
-class InputStream(multiprocessing.Process):
+class InputStream(threading.Thread):
     '''An objects which receives data and passes it along via a callback'''
     def __init__(self, callback):
-        multiprocessing.Process.__init__(self)
+        threading.Thread.__init__(self)
         self.callback = callback
 
     def run(self):
@@ -35,6 +35,7 @@ class EventPickleFile(EventSource):
         InputStream.__init__(self, callback)
 
         self.filename = filename
+        self.idx = 0
 
         import pickle
         with open(self.filename) as f:
@@ -44,7 +45,9 @@ class EventPickleFile(EventSource):
         '''ship events on a fixed timer'''
         import time
         for ev in self.events:
-            self.callback(ev)
+            print 'event', self.idx
+            self.callback(self.idx, ev)
+            self.idx += 1
             time.sleep(2)
 
     def get(self, idx):

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <style>
       body {
+        font-family: sans-serif;
         background-color: #000;
         margin: 10px;
         overflow: hidden;
@@ -51,8 +52,37 @@
       });
 
       function message(from, msg) {
-        $('#alarms').append($('<p>').append($('<b>').text(from), msg));
+        $('body').append($('<p style="color:white">').append($('<b>').text(from), msg));
       }
+
+      $('#control-back').live('click', function(e) {
+        console.log('control back');
+        socket.emit('control_back');
+      });
+
+      $('#control-forward').live('click', function(e) {
+        console.log('control forward');
+        socket.emit('control_forward');
+      });
+
+      $('#control-pause').live('click', function(e) {
+        console.log('control pause');
+        socket.emit('control_toggle_pause');
+      });
+
+      $('#control-settings').live('submit', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('control settings');
+        var settings = {
+          nhit_threshold: $('#nhit_threshold').val(),
+          trigger_type: $('#trigger_type').val()
+        };
+        var s = JSON.stringify(settings);
+        console.log(s)
+        console.log(settings)
+        socket.emit('configure', settings); //JSON.stringify(settings));
+      });
 
       $(document).ready(function () {
         socket.emit('initialize', []);

@@ -1,8 +1,16 @@
+import os
+
 from gevent import monkey
 monkey.patch_all()
 
 from socketio import socketio_manage
 from socketio.server import SocketIOServer
+
+import apps.websnoed
+
+base_path = os.path.abspath(os.path.dirname(__file__))
+
+app_paths = ['websnoed.html']
 
 class Application(object):
     def __init__(self):
@@ -17,7 +25,12 @@ class Application(object):
             return ['<h1>Welcome. '
                 'Try the <a href="/index.html">chat</a> example.</h1>']
 
-        if path.startswith('static/') or path == 'index.html': # fixme
+        if path.startswith('static/') or path in app_paths:
+            if path in app_paths:
+                path = os.path.join(base_path, 'apps', path)
+            else:
+                path = os.path.join(base_path, path)
+
             try:
                 data = open(path).read()
             except Exception:
@@ -37,8 +50,7 @@ class Application(object):
 
         if path.startswith("socket.io"):
             # socketio namespaces here
-            #socketio_manage(environ, {'': event_viewer.EventViewerNamespace}, self.request)
-            pass
+            socketio_manage(environ, {'': apps.websnoed.EventViewerNamespace}, self.request)
         else:
             return not_found(start_response)
 
