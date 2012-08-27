@@ -78,10 +78,7 @@
           nhit_threshold: $('#nhit_threshold').val(),
           trigger_type: $('#trigger_type').val()
         };
-        var s = JSON.stringify(settings);
-        console.log(s)
-        console.log(settings)
-        socket.emit('configure', settings); //JSON.stringify(settings));
+        socket.emit('configure', settings);
       });
 
       $(document).ready(function () {

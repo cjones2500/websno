@@ -7,6 +7,8 @@ from snostream.apps.websnoed import EventViewerNamespace
 
 if __name__ == '__main__':
     f = EventPickleFile(sys.argv[1], EventViewerNamespace.broadcast_event)
+    EventViewerNamespace.event_getter = f.get
+
     f.start()
     snostream.server.serve()
     f.join()

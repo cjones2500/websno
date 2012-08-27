@@ -1,14 +1,9 @@
 import json
-
-from gevent import monkey
-monkey.patch_all()
-
 from socketio.namespace import BaseNamespace
-
-from snostream import registry
 
 class EventViewerNamespace(BaseNamespace):
     _registry = {}
+    event_getter = None
 
     def on_initialize(self, subscriptions=[]):
         self.settings = {
@@ -23,21 +18,21 @@ class EventViewerNamespace(BaseNamespace):
     def on_control_back(self):
         print 'BACK'
         try:
-            ev = json.dumps(source.get_event(self.event_index - 1))
+            ev = json.dumps(self.event_getter(self.event_index - 1))
             self.event_index -= 1
             self.user_control = True
             self.emit('event', ev)
-        except IndexError:
+        except Exception:
             self.emit('alarm', "Can't get previous event")
 
     def on_control_forward(self):
         print 'FORWARD'
         try:
-            ev = json.dumps(get_event(self.event_index + 1))
+            ev = json.dumps(self.event_getter(self.event_index + 1))
             self.event_index += 1
             self.user_control = True
             self.emit('event', ev)
-        except IndexError:
+        except Exception:
             self.emit('alarm', "Can't get next event")
 
     def on_control_toggle_pause(self):
@@ -58,6 +53,7 @@ class EventViewerNamespace(BaseNamespace):
 
     @classmethod
     def broadcast_event(self, idx, ev):
+        '''send an event to all connected clients that want them'''
         for s in filter(lambda x: not x.user_control, EventViewerNamespace._registry.values()):
             print ev['nhit']
             if not ev['nhit'] >= s.settings['nhit_threshold']:
