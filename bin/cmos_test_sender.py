@@ -14,9 +14,9 @@ while True:
         'channels': []
     }
     
-    for i in range(random.randrange(200, 300)):
+    for i in range(32):
         d['channels'].append({
-            'id': random.randrange(0, 32),
+            'id': i,
             'rate': max(0, random.normalvariate(1000, 1000))
         })
 
@@ -24,8 +24,9 @@ while True:
 
     reply = socket.recv_json()
 
-    if reply['ok'] == True:
-        print 'ACK'
+    if not reply or 'ok' not in reply:
+        print 'communication error'
+        break
 
-    time.sleep(1)
+    time.sleep(2)
 

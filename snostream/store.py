@@ -7,6 +7,26 @@ to the user.
 import json
 import uuid
 
+from snostream.apps.cmos import CMOSRatesNamespace
+
+def run_async(func):
+    '''Run a function in a Thread
+
+    Source:
+      http://code.activestate.com/recipes/576684-simple-threading-decorator/
+    '''
+    from threading import Thread
+    from functools import wraps
+
+    @wraps(func)
+    def async_func(*args, **kwargs):
+        func_hl = Thread(target = func, args = args, kwargs = kwargs)
+        func_hl.start()
+        return func_hl
+
+    return async_func
+
+
 class DataStore:
     '''Base class for data storage interfaces'''
     def __init__(self):
@@ -36,40 +56,29 @@ class CouchDBStore(DataStore):
 
         self._db = self._couch[dbname]
 
-    def set(self, key, timestamp, value):
-        '''Store a key/value pair with a timestamp
-        
-        :param key: Field (queue) name
-        :param timestamp: float -- time of sample in seconds since epoch
-        :param value: Measured value to store
-        '''
-        d = {
-            '_id': uuid.uuid4().hex,
-            'key': key,
-            'timestamp': timestamp,
-            'value': value
-        }
+    def set(self, l):
+        '''Store a list of key/value/timestamp dicts'''
+        self._db.update(l)
+        CMOSRatesNamespace.update_trigger()
 
-        self._db.save(d)
-
+    #@run_async
     def get(self, key, interval=None):
         '''Get a list of (timestamp, value) tuples for the requested key over
         the specified time interval (in seconds since epoch).
 
         :param key: Field (queue) name to look up
         :param interval: tuple -- *optional* (start, end) times to get
-        :returns: list -- list of (timestamp, value) tuples
+        :returns: list of (timestamp, value) tuples
         '''
         if interval:
             kwargs = {'startkey': [key,interval[0]], 'endkey': [key,interval[1]]}
         else:
             kwargs = {'startkey': [key], 'endkey': [key,{}]}
 
-        l = []
-        for row in self._db.view('foo/asdf', **kwargs):
-            l.append((row.key[1], row.value))
+        l = [(r.key[1], r.value) for r in self._db.view('foo/asdf', **kwargs)]
 
         return l
+
 
 class CouchBaseStore(DataStore):
     '''Store queues in a CouchBase DB'''

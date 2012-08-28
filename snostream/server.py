@@ -7,10 +7,11 @@ from socketio import socketio_manage
 from socketio.server import SocketIOServer
 
 from snostream.apps import websnoed
+from snostream.apps import cmos
 
 base_path = os.path.abspath(os.path.dirname(__file__))
 
-app_paths = ['websnoed.html']
+app_paths = ['websnoed', 'cmos']
 
 class Application(object):
     def __init__(self):
@@ -22,12 +23,11 @@ class Application(object):
 
         if not path:
             start_response('200 OK', [('Content-Type', 'text/html')])
-            return ['<h1>Welcome. '
-                'Try the <a href="/index.html">chat</a> example.</h1>']
+            return ['<h1>THE INDEX PAGE!</h1>']
 
         if path.startswith('static/') or path in app_paths:
             if path in app_paths:
-                path = os.path.join(base_path, 'apps', path)
+                path = os.path.join(base_path, 'apps', path+'.html')
             else:
                 path = os.path.join(base_path, path)
 
@@ -49,8 +49,11 @@ class Application(object):
             return [data]
 
         if path.startswith("socket.io"):
-            # socketio namespaces here
-            socketio_manage(environ, {'': websnoed.EventViewerNamespace}, self.request)
+            routes = {
+                '/websnoed': websnoed.EventViewerNamespace,
+                '/cmos': cmos.CMOSRatesNamespace
+            }
+            socketio_manage(environ, routes, self.request)
         else:
             return not_found(start_response)
 

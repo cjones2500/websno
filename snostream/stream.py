@@ -234,12 +234,12 @@ class OrcaJSONStream(InputStream):
 
             # handle different document types
             if o['type'] == 'cmos_rates':
-                print 'GOT SOME RATES'
                 if 'timestamp' in o:
                     sample_time = o['timestamp']
                 else:
                     sample_time = time.time()
 
+                l = []
                 for channel in o['channels']:
                     idx = channel['id']
                     rate = channel['rate']
@@ -247,7 +247,13 @@ class OrcaJSONStream(InputStream):
                     k = '%s_%i' % (o['type'], idx)
                     v = rate
 
-                    self.callback(k, sample_time, v)
+                    l.append({
+                        'key': k,
+                        'timestamp': sample_time,
+                        'value': v
+                    })
+
+                self.callback(l)
 
 class CouchDBChanges(InputStream):
     '''Read changes from a CouchDB database'''

@@ -23,7 +23,7 @@
       WEB_SOCKET_SWF_LOCATION = "/static/WebSocketMain.swf";
       WEB_SOCKET_DEBUG = true;
 
-      var socket = io.connect();
+      var socket = io.connect('/websnoed');
 
       socket.on('connect', function () {
         $('#chat').addClass('connected');

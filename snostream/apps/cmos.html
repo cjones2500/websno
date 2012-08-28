@@ -1,0 +1,75 @@
+<html lang="en">
+  <head>
+    <title>CMOS Rates</title>
+    <style>
+      body {
+        background: black;
+        color: white;
+        font-family: sans-serif;
+        margin: 10px;
+      }
+    </style>
+    <link href="static/css/style.css" rel="stylesheet">
+    <script type="text/javascript" src="/static/js/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="static/socket.io.js"></script>
+    <script type="text/javascript" src="/static/js/flot/jquery.flot.min.js"></script>
+
+    <script>    
+      WEB_SOCKET_SWF_LOCATION = "/static/WebSocketMain.swf";
+      WEB_SOCKET_DEBUG = true;
+
+      var socket = io.connect('/cmos');
+      var plot;
+      var data = [];
+
+      socket.on('connect', function () { });
+
+      socket.on('alarm', function (msg) {
+        message('Alarm', msg);
+      });
+
+      socket.on('event', function(d) {
+        data.push.apply(data, $.parseJSON(d));
+        plot = $.plot($("#rate-plot"), [data], {series: {shadowSize: 0}});
+      });
+
+      socket.on('reconnect', function () {
+        socket.emit('initialize', []);
+        message('System', 'Reconnected to the server');
+      });
+
+      socket.on('reconnecting', function () {
+        message('System', 'Attempting to re-connect to the server');
+      });
+
+      socket.on('error', function (e) {
+        message('System', e ? e : 'A unknown error occurred');
+      });
+
+      function message(from, msg) {
+        $('body').append($('<p style="color:white">').append($('<b>').text(from), msg));
+      }
+
+      $('#control-settings').live('submit', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('control settings');
+        socket.emit('configure', {channel: parseInt($('#control-channel').val())});
+      });
+
+      $(document).ready(function () {
+        socket.emit('initialize', []);
+      });
+
+    </script>
+  </head>
+  <body>
+    <h1>CMOS Rate Monitoring</h1>
+    <form id="control-settings">
+      Channel: <input id="control-channel" type="text">
+      <button>Apply</button>
+    </form>
+    <div id="rate-plot" style="width:600px;height:300px;"></div>
+  </body>
+</html>
+
