@@ -55,7 +55,6 @@ class EventViewerNamespace(BaseNamespace):
     def broadcast_event(self, idx, ev):
         '''send an event to all connected clients that want them'''
         for s in filter(lambda x: not x.user_control, EventViewerNamespace._registry.values()):
-            print ev['nhit']
             if not ev['nhit'] >= s.settings['nhit_threshold']:
                 continue
 

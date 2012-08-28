@@ -2,14 +2,31 @@
 
 import sys
 import snostream.server
-from snostream.stream import EventPickleFile
+from snostream.stream import EventPickleFile, RATRootFile, ZDABFile
 from snostream.apps.websnoed import EventViewerNamespace
 
 if __name__ == '__main__':
-    f = EventPickleFile(sys.argv[1], EventViewerNamespace.broadcast_event)
-    EventViewerNamespace.event_getter = f.get
+    if sys.argv[1].endswith('.pickle'):
+        f = EventPickleFile(sys.argv[1], EventViewerNamespace.broadcast_event)
+        EventViewerNamespace.event_getter = f.get
 
+    elif sys.argv[1].endswith('.root'):    
+        f = RATRootFile(sys.argv[1], EventViewerNamespace.broadcast_event)
+        EventViewerNamespace.event_getter = f.get
+
+    elif sys.argv[1].endswith('.zdab'):
+        f = ZDABFile(sys.argv[1], EventViewerNamespace.broadcast_event)
+
+    else:
+        print 'Unknown file format'
+        sys.exit(1)
+
+    # start event source thread
     f.start()
+
+    # start web/socket server
     snostream.server.serve()
+
+    # wait for event source to exit
     f.join()
 

@@ -59,7 +59,7 @@ var websnoed = (function() {
     event_metadata.style.color = 'white';
     event_metadata.style.background = 'rgba(1,1,1,0.8)';
     event_metadata.style.border = 'solid 1px 0x55555';
-    event_metadata.innerHTML = '<span id="meta-nhit"></span><br/><span id="meta-gtid"></span>';
+    event_metadata.innerHTML = '<span id="meta-source"></span><br/><span id="meta-nhit"></span><br/><span id="meta-gtid"></span><br/><span id="meta-trig"></span>';
     wsed.container.appendChild(event_metadata);
 
     var crates = document.createElement('div');
@@ -211,8 +211,12 @@ var websnoed = (function() {
     wsed.update_plot('time', data.thist);
 
     // metadata
+    if (data.source) {
+      $("#meta-source").html('<strong>Source</strong>: ' + data.source);
+    }
     $("#meta-nhit").html('<strong>NHIT</strong>: ' + data.nhit);
     $("#meta-gtid").html('<strong>GTID</strong>: ' + data.gtid);
+    $("#meta-trig").html('<strong>Trigger</strong>: ' + data.trig);
   };
 
   wsed.render = function() {
@@ -318,7 +322,7 @@ var websnoed = (function() {
   // plots
   wsed.plot_options = {
     series: { shadowSize: 0 }, // drawing is faster without shadows
-    yaxis: { min: 0, max: 350 },
+    yaxis: { min: 0, max: 250 },
     xaxis: { min: 0, max: 4095 },
     bars: { show: true }
   };
