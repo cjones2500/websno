@@ -2,10 +2,12 @@
 
 import sys
 import snostream.server
-from snostream.stream import EventPickleFile, RATRootFile, ZDABFile
+from snostream.stream import EventPickleFile, RATRootFile, ZDABFile, OrcaJSONStream
+from snostream.store import MemoryStore
 from snostream.apps.websnoed import EventViewerNamespace
 
 if __name__ == '__main__':
+    # event source
     if sys.argv[1].endswith('.pickle'):
         f = EventPickleFile(sys.argv[1], EventViewerNamespace.broadcast_event)
         EventViewerNamespace.event_getter = f.get
@@ -21,12 +23,19 @@ if __name__ == '__main__':
         print 'Unknown file format'
         sys.exit(1)
 
-    # start event source thread
     f.start()
+
+    # data storage backend
+    store = MemoryStore()
+
+    # other data sources
+    orca_json = OrcaJSONStream('tcp://localhost:5028', store.set)
+    orca_json.start()
 
     # start web/socket server
     snostream.server.serve()
 
-    # wait for event source to exit
+    # wait for threads to exit
     f.join()
+    orca_json.join()
 

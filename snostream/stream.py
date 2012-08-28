@@ -4,6 +4,8 @@ Data sources run in separate threading.Threads and push their data via a
 user-provided callback.
 '''
 
+import time
+import calendar
 import threading
 
 class InputStream(threading.Thread):
@@ -44,7 +46,6 @@ class EventPickleFile(EventSource):
 
     def run(self):
         '''ship events on a fixed timer'''
-        import time
         for ev in self.events:
             ev['source'] = 'Event Pickle: %s' % self.filename
             self.callback(self.idx, ev)
@@ -117,10 +118,13 @@ class RATRootFile(EventSource):
 
     def run(self):
         '''ship events on a fixed timer'''
-        import time
         for i in range(self.t.GetEntries()):
             self.t.GetEntry(i)
-            if self.ds.GetEVCount > 1:
+            
+            if not self.ds:
+                break
+
+            if self.ds.GetEVCount() > 1:
                 d = self.ev_to_dict(self.ds.GetEV(0), 'RAT File: %s' % self.filename)
                 self.callback(i, d) 
                 self.idx = i
@@ -149,7 +153,6 @@ class ZDABFile(EventSource):
         
     def run(self):
         '''ship events on a fixed timer'''
-        import time
         import ratzdab
 
         while True:
@@ -206,10 +209,44 @@ class OrcaRootStream(InputStream):
 
 class OrcaJSONStream(InputStream):
     '''Read documents from a ZeroMQ OrcaRoot JSON stream'''
-    def __init__(self, callback):
-        import zmq
+    def __init__(self, address, callback):
         InputStream.__init__(self, callback)
 
+        self.address = address
+
+    def run(self):
+        import zmq
+        self._context = zmq.Context() # if multiple zmq streams, move this up
+        self._socket = self._context.socket(zmq.REP)
+        self._socket.connect(self.address)
+        
+        while True:
+            try:
+                # use non-blocking recv to avoid GIL, since this is a Thread
+                # throws ZMQError if no data is available
+                o = self._socket.recv_json(zmq.NOBLOCK)
+            except zmq.ZMQError:
+                time.sleep(0.5) # fixme?
+                continue
+
+            self._socket.send_json({'ok': True}) # probably make this PUB/SUB someday
+
+            # handle different document types
+            if o['type'] == 'cmos_rates':
+                print 'GOT SOME RATES'
+                if 'timestamp' in o:
+                    sample_time = o['timestamp']
+                else:
+                    sample_time = time.time()
+
+                for channel in o['channels']:
+                    idx = channel['id']
+                    rate = channel['rate']
+
+                    k = '%s_%i' % (o['type'], idx)
+                    v = rate
+
+                    self.callback(k, sample_time, v)
 
 class CouchDBChanges(InputStream):
     '''Read changes from a CouchDB database'''
