@@ -98,6 +98,13 @@ class RATRootFile(EventSource):
         d['t'] = t
         d['id'] = pmtid
 
+        digitizer = ev.GetDigitiser()
+        for i in range(digitizer.GetTrigSumCount()):
+            waveform = digitizer.GetTrigSum(i).GetSamples()
+            d['caen_%i' % i] = []
+            for j in range(waveform.size()):
+                d['caen_%i' % i].append([j, waveform[j]])
+
         # try to make histograms with numpy
         try:
             import numpy
@@ -113,9 +120,10 @@ class RATRootFile(EventSource):
         import time
         for i in range(self.t.GetEntries()):
             self.t.GetEntry(i)
-            d = self.ev_to_dict(self.ds.GetEV(0), 'RAT File: %s' % self.filename)
-            self.callback(i, d) 
-            self.idx = i
+            if self.ds.GetEVCount > 1:
+                d = self.ev_to_dict(self.ds.GetEV(0), 'RAT File: %s' % self.filename)
+                self.callback(i, d) 
+                self.idx = i
             time.sleep(self.interval)
 
     def get(self, idx):

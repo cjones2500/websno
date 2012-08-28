@@ -86,7 +86,9 @@
         websnoed.init();
         websnoed.plots = {
           charge: $.plot($("#plot-charge"), [{label: 'qhs', data: [[0,0],[4096,0]]}], websnoed.plot_options),
-          time: $.plot($("#plot-time"), [{label: 'time', data: [[0,0],[4096,0]]}], websnoed.plot_options)
+          time: $.plot($("#plot-time"), [{label: 'time', data: [[0,0],[4096,0]]}], websnoed.plot_options),
+          caen_0: $.plot($("#plot-caen-0"), [{label: '0', data: [[0,0],[440,0]]}], websnoed.plot_options_caen),
+          caen_2: $.plot($("#plot-caen-2"), [{label: '2', data: [[0,0],[440,0]]}], websnoed.plot_options_caen)
         };
       });
     </script>

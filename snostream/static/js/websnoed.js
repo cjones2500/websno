@@ -95,6 +95,30 @@ var websnoed = (function() {
     time_plot.style.textAlign = 'center';
     wsed.container.appendChild(time_plot);
 
+    var caen_0 = document.createElement('div');
+    caen_0.style.position = 'absolute';
+    caen_0.id = 'plot-caen-0';
+    caen_0.style.top = '550px';
+    caen_0.style.left = String(window.innerWidth - 295) + 'px';
+    caen_0.style.width = '280px';
+    caen_0.style.height = '80px';
+    caen_0.style.color = 'white';
+    caen_0.style.background = 'rgba(0,0,0,0.8)';
+    caen_0.style.textAlign = 'center';
+    wsed.container.appendChild(caen_0);
+
+    var caen_2 = document.createElement('div');
+    caen_2.style.position = 'absolute';
+    caen_2.id = 'plot-caen-2';
+    caen_2.style.top = '640px';
+    caen_2.style.left = String(window.innerWidth - 295) + 'px';
+    caen_2.style.width = '280px';
+    caen_2.style.height = '80px';
+    caen_2.style.color = 'white';
+    caen_2.style.background = 'rgba(0,0,0,0.8)';
+    caen_2.style.textAlign = 'center';
+    wsed.container.appendChild(caen_2);
+
     // control ui
     var control_widget = document.createElement('div');
     control_widget.style.position = 'absolute';
@@ -222,6 +246,8 @@ var websnoed = (function() {
     // plots
     wsed.update_plot('charge', data.qhist);
     wsed.update_plot('time', data.thist);
+    wsed.update_plot('caen_0', data.caen_0);
+    wsed.update_plot('caen_2', data.caen_2);
 
     // metadata
     if (data.source) {
@@ -340,6 +366,12 @@ var websnoed = (function() {
     bars: { show: true }
   };
   
+  wsed.plot_options_caen = {
+    series: { shadowSize: 0 }, // drawing is faster without shadows
+    yaxis: { min: 0, max: 5 },
+    xaxis: { min: 0, max: 110 },
+  };
+
   wsed.update_plot = function(name, data) {
     if (wsed.plots && wsed.plots[name]) {
       wsed.plots[name].setData([{label: name, data: data}]);
