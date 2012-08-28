@@ -41,6 +41,12 @@ var websnoed = (function() {
     program: wsed.particleSurfaceProgram
   });
 
+  wsed.show_settings = function() {
+    console.log('show settings')
+    $('#settings').toggle();
+    $('#nhit_threshold').focus();
+  };
+
   wsed.init = function() {
     // div elements (plots, etc.)
     wsed.container = document.createElement('div');
@@ -64,8 +70,6 @@ var websnoed = (function() {
     crates.style.width = '300px';
     crates.style.height = '105px';
     crates.style.color = 'white';
-    crates.style.background = '0xaaa';
-    crates.style.border = 'solid 1px 0x55555';
     crates.innerHTML = '<div id="crates"></div>';
     wsed.container.appendChild(crates);
 
@@ -76,7 +80,7 @@ var websnoed = (function() {
     charge_plot.style.width = '300px';
     charge_plot.style.height = '175px';
     charge_plot.style.color = 'white';
-    charge_plot.style.background = 'rgba(1,1,1,0.8)';
+    charge_plot.style.background = 'rgba(0,0,0,0.8)';
     charge_plot.style.textAlign = 'center';
     wsed.container.appendChild(charge_plot);
 
@@ -87,7 +91,7 @@ var websnoed = (function() {
     time_plot.style.width = '300px';
     time_plot.style.height = '175px';
     time_plot.style.color = 'white';
-    time_plot.style.background = 'rgba(1,1,1,0.8)';
+    time_plot.style.background = 'rgba(0,0,0,0.8)';
     time_plot.style.textAlign = 'center';
     wsed.container.appendChild(time_plot);
 
@@ -96,17 +100,20 @@ var websnoed = (function() {
     control_widget.style.position = 'absolute';
     control_widget.id = 'control-widget';
     control_widget.style.top = '560px';
-    control_widget.style.width = '300px';
-    control_widget.style.height = '225px';
-    control_widget.style.color = '#fff';
-    control_widget.style.background = 'rgba(255,255,255,0.5)';
-    control_widget.style.border = 'solid 1px #aaa';
+    control_widget.style.width = '200px';
+    control_widget.style.color = 'white';
+    control_widget.style.background = 'rgba(0,0,0,0.8)';
+    control_widget.style.border = 'solid 2px #444';
     control_widget.style.textAlign = 'left';
     wsed.container.appendChild(control_widget);
 
-    var control_html = '<span style="font-size:large;font-weight:bold;">Event Control</span><br/><div style="text-align:center"><button id="control-back">&lt;</button>&nbsp;<button id="control-pause">x</button>&nbsp;<button id="control-forward">&gt;</button></div><br/><form id="control-settings"><table style="font-size:small"><tr><th><label for="nhit_threshold">NHIT Threshold</label></th><td><input id="nhit_threshold" type="text"/></td></tr><tr><th><label for="trigger_type">Trigger Type</th><td><input id="trigger_type"/></td></tr></table><div style="text-align:center"><button>Set</button></div></form>';
+    var control_html = '<span style="font-size:large;font-weight:bold;">Event Control</span><br/><br/><div style="text-align:center"><button id="control-back" class="wsed-control">&#9668;</button>&nbsp;<button id="control-pause" class="wsed-control">x</button>&nbsp;<button id="control-forward" class="wsed-control">&#9658;</button><br/><br/><button type="button" data-toggle="modal" onclick="websnoed.show_settings()" id="show-settings">Show Settings</button><div id="settings" style="display:none"><form id="control-settings"><table style="font-size:smaller"><tr><th><label for="nhit_threshold" style="color:#ddd">NHIT Threshold</label></th><td><input id="nhit_threshold" type="text" class="wsed-setting"/></td></tr><tr><th><label for="trigger_type" style="color:white">Trigger Type</label></th><td><input id="trigger_type" class="wsed-setting"/></td></tr></table><div style="text-align:center"><button class="wsed-control">Set</button></div></form></div></div></div>';
 
     $('#control-widget').html(control_html);
+
+    // prevent hostile canvas takeover
+    $('#nhit_threshold').live('click', function(e) { $(this).focus(); });
+    $('#trigger_type').live('click', function(e) { $(this).focus(); });
 
     // crate view
     var html = '<table style="font-size:4pt"><tr>';
