@@ -6,7 +6,7 @@ monkey.patch_all()
 from socketio import socketio_manage
 from socketio.server import SocketIOServer
 
-import apps.websnoed
+from snostream.apps import websnoed
 
 base_path = os.path.abspath(os.path.dirname(__file__))
 
@@ -50,7 +50,7 @@ class Application(object):
 
         if path.startswith("socket.io"):
             # socketio namespaces here
-            socketio_manage(environ, {'': apps.websnoed.EventViewerNamespace}, self.request)
+            socketio_manage(environ, {'': websnoed.EventViewerNamespace}, self.request)
         else:
             return not_found(start_response)
 

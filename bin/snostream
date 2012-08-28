@@ -2,8 +2,7 @@
 
 import sys
 import snostream.server
-from snostream.stream import EventPickleFile, RATRootFile, ZDABFile, OrcaJSONStream
-from snostream.store import CouchDBStore
+from snostream.stream import EventPickleFile, RATRootFile, ZDABFile
 from snostream.apps.websnoed import EventViewerNamespace
 
 if __name__ == '__main__':
@@ -26,16 +25,16 @@ if __name__ == '__main__':
     f.start()
 
     # data storage backend
-    store = CouchDBStore('http://localhost:5984', 'ss')
+    #store = CouchDBStore('http://localhost:5984', 'ss')
 
     # other data sources
-    orca_json = OrcaJSONStream('tcp://localhost:5028', store.set)
-    orca_json.start()
+    #orca_json = OrcaJSONStream('tcp://localhost:5028', store.set)
+    #orca_json.start()
 
     # start web/socket server
     snostream.server.serve()
 
     # wait for threads to exit
     f.join()
-    orca_json.join()
+    #orca_json.join()
 

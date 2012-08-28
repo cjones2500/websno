@@ -120,14 +120,15 @@ class RATRootFile(EventSource):
         '''ship events on a fixed timer'''
         for i in range(self.t.GetEntries()):
             self.t.GetEntry(i)
-            
+
             if not self.ds:
                 break
 
-            if self.ds.GetEVCount() > 1:
+            if self.ds.GetEVCount() > 0:
                 d = self.ev_to_dict(self.ds.GetEV(0), 'RAT File: %s' % self.filename)
                 self.callback(i, d) 
                 self.idx = i
+
             time.sleep(self.interval)
 
     def get(self, idx):
