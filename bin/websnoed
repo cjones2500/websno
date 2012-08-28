@@ -1,0 +1,37 @@
+#!/usr/bin/env python
+
+import sys
+import snostream.server
+from snostream.stream import EventPickleFile, RATRootFile, ZDABFile
+from snostream.apps.websnoed import EventViewerNamespace
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print 'Usage:', sys.argv[0], 'filename.root # or .pickle, or .zdab'
+        sys.exit(1)
+
+    if sys.argv[1].endswith('.pickle'):
+        f = EventPickleFile(sys.argv[1], EventViewerNamespace.broadcast_event)
+        EventViewerNamespace.event_getter = f.get
+
+    elif sys.argv[1].endswith('.root'):    
+        f = RATRootFile(sys.argv[1], EventViewerNamespace.broadcast_event)
+        EventViewerNamespace.event_getter = f.get
+
+    elif sys.argv[1].endswith('.zdab'):
+        f = ZDABFile(sys.argv[1], EventViewerNamespace.broadcast_event)
+
+    else:
+        print 'Unknown file format'
+        sys.exit(2)
+
+    f.start()
+
+    print '\nVisit http://localhost:8080/websnoed.html to view events\n'
+
+    # start web/socket server
+    snostream.server.serve()
+
+    # wait for threads to exit
+    f.join()
+
