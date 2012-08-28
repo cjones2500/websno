@@ -147,6 +147,19 @@ var websnoed = (function() {
     wsed.camera = camera;
     wsed.scene.add(wsed.camera);
 
+    // acrylic vessel
+    var av = new THREE.Mesh(new THREE.SphereGeometry(6005.0/50, 20, 20),
+                            new THREE.MeshBasicMaterial({color: 0xaaaaff, opacity: 0.15}));
+
+    wsed.scene.add(av);
+
+    var avneck = new THREE.Mesh(new THREE.CylinderGeometry(794.0/50, 794.0/50, 3900.0/50, 20, 1),
+                                new THREE.MeshBasicMaterial({color: 0xaaaaff, opacity: 0.15}));
+
+    avneck.position.z = (5900.0 + 3900.0/2) / 50;
+    avneck.rotation.x = Math.PI / 2;
+    wsed.scene.add(avneck);
+
     wsed.projector = new THREE.Projector();
     wsed.onMouseDownPosition = new THREE.Vector2();
     wsed.ray = new THREE.Ray(wsed.camera.position, null);
@@ -198,7 +211,7 @@ var websnoed = (function() {
         wsed.pmts[wsed.prevHits[ikeep]].material = wsed.unhitMaterial;
         var ccc = getCCC(wsed.prevHits[ikeep]);
         var channel_selector = "#channel-" + ccc.crate + '_' + ccc.card + '_' + ccc.channel;
-        $(channel_selector).css('background','#333');
+        $(channel_selector).css('background','#555555');
       }
     }
     wsed.render();
