@@ -9,28 +9,41 @@ import uuid
 
 from snostream.apps.cmos import CMOSRatesNamespace
 
-def run_async(func):
-    '''Run a function in a Thread
-
-    Source:
-      http://code.activestate.com/recipes/576684-simple-threading-decorator/
-    '''
-    from threading import Thread
-    from functools import wraps
-
-    @wraps(func)
-    def async_func(*args, **kwargs):
-        func_hl = Thread(target = func, args = args, kwargs = kwargs)
-        func_hl.start()
-        return func_hl
-
-    return async_func
-
-
 class DataStore:
     '''Base class for data storage interfaces'''
     def __init__(self):
         pass
+
+
+class MemoryStore(DataStore):
+    '''Hold queues in memory'''
+    def __init__(self):
+        DataStore.__init__(self)
+
+        self._store = {}
+
+    def set(self, l):
+        '''Store a list of key/value/timestamp dicts'''
+        for o in l:
+            self._store.setdefault(o['key'], []).append([o['timestamp'], o['value']])
+
+        CMOSRatesNamespace.update_trigger()
+
+    def get(self, key, interval=None):
+        '''Get a list of (timestamp, value) tuples for the requested key over
+        the specified time interval (in seconds since epoch).
+
+        :param key: Field (queue) name to look up
+        :param interval: tuple -- *optional* (start, end) times to get
+        :returns: list of (timestamp, value) tuples
+        '''
+        l = self._store.get(key, [])
+
+        # this is really inefficient. use a b-tree orsomething.
+        if interval:
+            l = filter(lambda x: x[0]>interval[0] and x[0]<interval[1], l)
+
+        return l
 
 
 class CouchDBStore(DataStore):
@@ -61,7 +74,6 @@ class CouchDBStore(DataStore):
         self._db.update(l)
         CMOSRatesNamespace.update_trigger()
 
-    #@run_async
     def get(self, key, interval=None):
         '''Get a list of (timestamp, value) tuples for the requested key over
         the specified time interval (in seconds since epoch).
@@ -92,12 +104,4 @@ class CouchBaseStore(DataStore):
         self._cb = Couchbase(host, username, password)
 
         self._bucket = self._cb[bucket_name]
-
-
-class MemoryStore(DataStore):
-    '''Hold queues in memory'''
-    def __init__(self):
-        DataStore.__init__(self)
-
-        self._store = {}
 

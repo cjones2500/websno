@@ -28,5 +28,6 @@ while True:
         print 'communication error'
         break
 
-    time.sleep(2)
+    print 'send'
+    #time.sleep(0.02)
 

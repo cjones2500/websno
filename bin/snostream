@@ -6,7 +6,7 @@ import snostream
 
 import snostream.server
 from snostream.stream import EventPickleFile, RATRootFile, ZDABFile, OrcaJSONStream
-from snostream.store import CouchDBStore
+from snostream.store import MemoryStore, CouchDBStore
 
 from snostream.apps.websnoed import EventViewerNamespace
 
@@ -30,6 +30,7 @@ if __name__ == '__main__':
 
     # data storage backend
     snostream.data_store = CouchDBStore('http://localhost:5984', 'ss')
+    #snostream.data_store = MemoryStore()
 
     # other data sources
     orca_json = OrcaJSONStream('tcp://localhost:5028', snostream.data_store.set)
