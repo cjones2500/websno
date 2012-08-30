@@ -3,7 +3,7 @@
 import sys
 import snostream.server
 from snostream.stream import EventPickleFile, RATRootFile, ZDABFile
-from snostream.apps.websnoed import EventViewerNamespace
+from snostream.apps.websnoed.websnoed import EventViewerNamespace
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:

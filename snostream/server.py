@@ -6,8 +6,8 @@ monkey.patch_all()
 from socketio import socketio_manage
 from socketio.server import SocketIOServer
 
-from snostream.apps import websnoed
-from snostream.apps import cmos
+from snostream.apps.websnoed import websnoed
+from snostream.apps.cmostest import cmos
 
 base_path = os.path.abspath(os.path.dirname(__file__))
 
@@ -25,12 +25,19 @@ class Application(object):
             start_response('200 OK', [('Content-Type', 'text/html')])
             return ['<h1>THE INDEX PAGE!</h1>']
 
-        if path.startswith('static/') or path in app_paths:
-            if path in app_paths:
-                path = os.path.join(base_path, 'apps', path+'.html')
-            else:
-                path = os.path.join(base_path, path)
+        serve = False
+        if path.startswith('static/'):
+            path = os.path.join(base_path, path)
+            serve = True
+        else:
+            for app_path in app_paths:
+                if path.startswith(app_path):
+                    app_path_slash = app_path + '/'
+                    path = os.path.join(base_path,'apps',app_path,'public',path.replace(app_path_slash,'',1))
+                    serve = True
+                    break
 
+        if serve:
             try:
                 data = open(path).read()
             except Exception:

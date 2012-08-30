@@ -29,5 +29,5 @@ while True:
         break
 
     print 'send'
-    #time.sleep(0.02)
+    time.sleep(1)
 
