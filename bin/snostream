@@ -5,8 +5,9 @@ import sys
 import snostream
 
 import snostream.server
+import snostream.server_test_orcajson
 from snostream.stream import EventPickleFile, RATRootFile, ZDABFile, OrcaJSONStream
-from snostream.store import MemoryStore, CouchDBStore
+from snostream.store import MemoryStore, CouchDBStore, CrateSlotStore
 
 from snostream.apps.websnoed.websnoed import EventViewerNamespace
 
@@ -30,7 +31,8 @@ if __name__ == '__main__':
 
     # data storage backend
     #snostream.data_store = CouchDBStore('http://localhost:5984', 'ss')
-    snostream.data_store = MemoryStore()
+    #snostream.data_store = MemoryStore()
+    snostream.data_store = CrateSlotStore()
 
     # other data sources
     orca_json = OrcaJSONStream('tcp://localhost:5028', snostream.data_store.set)
@@ -38,7 +40,8 @@ if __name__ == '__main__':
     orca_json.start()
 
     # start web/socket server
-    snostream.server.serve()
+    #snostream.server.serve()
+    snostream.server_test_orcajson.serve()
 
     # wait for threads to exit
     snostream.event_source.join()
