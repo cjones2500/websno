@@ -240,7 +240,7 @@ class OrcaJSONStream(InputStream):
 
         while True:
             try:
-                socks = dict(poller.poll(10))
+                socks = dict(poller.poll(100))
             except zmq.ZMQError:
                 print 'poll failed'
                 socks = []
@@ -248,16 +248,9 @@ class OrcaJSONStream(InputStream):
 
             if self._socket in socks and socks[self._socket] == zmq.POLLIN:
                 o = self._socket.recv_json()
-                #temp hack. there won't be any ifs here, the worker will sort it out
-                if o['type'] == 'pmt_base_current':
-                    try:
-                        pass
-                        self._ssocket.send_pyobj(o, zmq.NOBLOCK)
-                    except zmq.ZMQError:
-                        #correct way would be to add 1. ssocket into poller as zmq.POLLOUT 2. a queue
-                        continue
 
-                elif o['type'] == 'cmos_rates':
+                '''
+                if o['type'] == 'cmos_rates':
                     if 'timestamp' in o:
                         sample_time = o['timestamp']
                     else:
@@ -278,6 +271,13 @@ class OrcaJSONStream(InputStream):
                         })
 
                     self.callback(l)
+                '''
+
+                try:
+                    self._ssocket.send_pyobj(o, zmq.NOBLOCK)
+                except zmq.ZMQError:
+                    #correct way would be to add 1. ssocket into poller as zmq.POLLOUT 2. a queue
+                    continue
 
             if self._rsocket in socks and socks[self._rsocket] == zmq.POLLIN:
                 o = self._rsocket.recv_pyobj()
