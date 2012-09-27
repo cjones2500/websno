@@ -1,3 +1,10 @@
+'''
+Data processor for the PMT base current packets.
+
+
+
+'''
+
 import gevent
 import datetime
 
@@ -28,7 +35,10 @@ class PmtBaseCurrent(gevent.Greenlet):
             raise PmtBaseCurrentException('error_flags missing')
 
         if 'adc' not in self.o:
-            raise PmtBaseCurrentException('adc error')
+            raise PmtBaseCurrentException('adc missing')
+
+        if 'busy_flag' not in self.o:
+            raise PmtBaseCurrentException('busy_flag missing')
 
     def process(self):
         self.o['adc'] = [map(lambda x: x - 127, slot) for slot in self.o['adc']]
@@ -43,9 +53,26 @@ class PmtBaseCurrent(gevent.Greenlet):
         self.process()
 
         res = []
-        ts = datetime.datetime.strptime(self.o['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%s.%f'),
+        #ts = datetime.datetime.strptime(self.o['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%s.%f')
+        ts = float(datetime.datetime.strptime(self.o['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ').strftime('%s.%f'))
         for s_idx, slot in enumerate(self.o['adc']):
             if self.o['slot_mask'] >> s_idx & 0x1 == 0: continue
+
+            #the list store flavor
+            res.append({
+                'key': self.o['type'],
+                'crate_num': self.o['crate_num'],
+                'slot_num': s_idx,
+                'ts': ts,
+                'v': {
+                    'adc': slot,
+                    'busy_flag': self.o['busy_flag'][s_idx],
+                    'channel_mask': self.o['channel_mask'][s_idx]
+                }
+            })
+
+            #the following works with memorystore
+            '''
             for ch_idx, channel in enumerate(slot):
                 if self.o['channel_mask'][s_idx] >> ch_idx & 0x1 == 0: continue
                 res.append({
@@ -53,6 +80,6 @@ class PmtBaseCurrent(gevent.Greenlet):
                     'timestamp': ts,
                     'value': channel
                 })
-
+            '''
         self.rqueue(res)
 

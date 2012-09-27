@@ -49,15 +49,32 @@ class _OrcaJSONWorker(multiprocessing.Process):
         self.rqueue = gevent.queue.Queue()
         gevent.spawn(self.respond)
 
+        pmt_base_current_pool = ProcessorPool(40, orcajson.PmtBaseCurrent, self.rqueue.put)
+        hv_status_pool = ProcessorPool(20, orcajson.HVStatus, self.rqueue.put)
+        xl3_voltages_pool = ProcessorPool(20, orcajson.XL3Voltages, self.rqueue.put)
+        fec_voltages_pool = ProcessorPool(20*16, orcajson.FECVoltages, self.rqueue.put)
+        fifo_state_pool = ProcessorPool(20, orcajson.FifoState, self.rqueue.put)
+        cmos_count_pool = ProcessorPool(80, orcajson.CmosCount, self.rqueue.put)
+
         poller = zmq.Poller()
         poller.register(self._ssocket, zmq.POLLIN)
 
-        pmt_base_current_pool = ProcessorPool(20, orcajson.PmtBaseCurrent, self.rqueue.put)
+        def missing(o):
+            print 'orcajson processor missing for packet type: ' + o['type']
+
+        route = {
+            'pmt_base_current': pmt_base_current_pool.add_job,
+            'xl3_hv': hv_status_pool.add_job,
+            'xl3_vlt': xl3_voltages_pool.add_job,
+            'fec_vlt': fec_voltages_pool.add_job,
+            'fifo_state': fifo_state_pool.add_job,
+            'cmos_counts': cmos_count_pool.add_job
+        }
 
         while True:
-            socks = dict(poller.poll(10)) 
+            socks = dict(poller.poll(100)) 
             if self._ssocket in socks and socks[self._ssocket] == zmq.POLLIN:
                 o = self._ssocket.recv_pyobj()
-                if o['type'] == 'pmt_base_current':
-                    pmt_base_current_pool.add_job(o)
+                if 'type' in o:
+                    route.get(o['type'], missing)(o)
 
