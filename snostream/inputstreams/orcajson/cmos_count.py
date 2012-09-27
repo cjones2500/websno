@@ -112,9 +112,5 @@ class CmosCount(gevent.Greenlet):
 
         self.process()
 
-        print '...cmos rates...'
-        print self.o
-        print self.d
-
         self.rqueue(self.d)
 

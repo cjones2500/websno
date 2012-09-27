@@ -5,7 +5,6 @@ import sys
 import snostream
 
 import snostream.server
-import snostream.server_test_orcajson
 from snostream.stream import EventPickleFile, RATRootFile, ZDABFile, OrcaJSONStream
 from snostream.store import MemoryStore, CouchDBStore, CrateSlotStore
 
@@ -40,8 +39,7 @@ if __name__ == '__main__':
     orca_json.start()
 
     # start web/socket server
-    #snostream.server.serve()
-    snostream.server_test_orcajson.serve()
+    snostream.server.serve()
 
     # wait for threads to exit
     snostream.event_source.join()
