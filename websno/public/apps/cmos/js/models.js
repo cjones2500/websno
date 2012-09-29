@@ -15,8 +15,8 @@ websno.models.Crate = Backbone.Model.extend({
     for (var i=0;i<32;i++){
       var id = this.id*32+i;
       this.channels.add(new websno.models.Channel({id: id}),{silent: true});
+      delete id;
     }
-    websno.events.on('increment',this.increment,this);
   },
 
   increment: function() {
