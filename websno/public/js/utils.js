@@ -14,3 +14,11 @@ websno.templateLoader = {
     $.when.apply(null,deferreds).done(callback);
   }
 };
+
+Backbone.View.prototype.close = function() {
+  if (this.onclose){
+    this.onclose();
+  }
+  this.remove();
+  this.unbind();
+}

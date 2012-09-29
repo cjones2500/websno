@@ -1,5 +1,6 @@
 websno.Router = Backbone.Router.extend({
   routes: {
+    "cmos": "cmos",
     "*path": "home"
   },
 
@@ -10,6 +11,10 @@ websno.Router = Backbone.Router.extend({
 
   home: function() {
     this.showView(websno.views.Home);
+  },
+
+  cmos: function() {
+    this.showView(websno.views.Cmos);
   },
 
   showView: function(view,args) {
