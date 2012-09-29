@@ -11,17 +11,17 @@
         overflow: hidden;
       }
     </style>
-    <link href="/static/css/style.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
-    <script type="text/javascript" src="/static/js/jquery-1.7.1.min.js"></script>
-    <script type="text/javascript" src="/static/socket.io.js"></script>
-    <script type="text/javascript" src="/static/js/Three.js"></script>
-    <script type="text/javascript" src="js/pmtpos.js"></script>
-    <script type="text/javascript" src="/static/js/flot/jquery.flot.min.js"></script>
-    <script type="text/javascript" src="js/websnoed.js"></script>
+    <link href="apps/websnoed/css/style.css" rel="stylesheet">
+    <script type="text/javascript" src="vendor/js/jquery-1.8.1.js"></script>
+    <script type="text/javascript" src="vendor/js/socket.io.js"></script>
+    <script type="text/javascript" src="vendor/js/Three.js"></script>
+    <script type="text/javascript" src="apps/websnoed/js/pmtpos.js"></script>
+    <script type="text/javascript" src="vendor/js/flot/jquery.flot.min.js"></script>
+    <script type="text/javascript" src="apps/websnoed/js/websnoed.js"></script>
 
     <script>    
-      WEB_SOCKET_SWF_LOCATION = "/static/WebSocketMain.swf";
+      WEB_SOCKET_SWF_LOCATION = "vendor/WebSocketMain.swf";
       WEB_SOCKET_DEBUG = true;
 
       var socket = io.connect('/websnoed');

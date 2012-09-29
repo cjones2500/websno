@@ -7,8 +7,6 @@ to the user.
 import json
 import uuid
 
-from websno.apps.cmostest.cmos import CMOSRatesNamespace
-
 class DataStore:
     '''Base class for data storage interfaces'''
     def __init__(self):
@@ -26,8 +24,6 @@ class MemoryStore(DataStore):
         '''Store a list of key/value/timestamp dicts'''
         for o in l:
             self._store.setdefault(o['key'], []).append([o['timestamp'], o['value']])
-
-        CMOSRatesNamespace.update_trigger()
 
     def get(self, key, interval=None):
         '''Get a list of (timestamp, value) tuples for the requested key over
@@ -72,7 +68,6 @@ class CouchDBStore(DataStore):
     def set(self, l):
         '''Store a list of key/value/timestamp dicts'''
         self._db.update(l)
-        CMOSRatesNamespace.update_trigger()
 
     def get(self, key, interval=None):
         '''Get a list of (timestamp, value) tuples for the requested key over

@@ -8,7 +8,7 @@ import websno.server
 from websno.stream import EventPickleFile, RATRootFile, ZDABFile, OrcaJSONStream
 from websno.store import MemoryStore, CouchDBStore
 
-from websno.apps.websnoed.websnoed import EventViewerNamespace
+from websno.apps.websnoed import EventViewerNamespace
 
 if __name__ == '__main__':
     # event source

@@ -6,12 +6,9 @@ monkey.patch_all()
 from socketio import socketio_manage
 from socketio.server import SocketIOServer
 
-from websno.apps.websnoed import websnoed
-from websno.apps.cmostest import cmos
+from websno.apps import websnoed
 
-base_path = os.path.abspath(os.path.dirname(__file__))
-
-app_paths = ['websnoed', 'cmos']
+base_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),'public')
 
 class Application(object):
     def __init__(self):
@@ -19,23 +16,18 @@ class Application(object):
         self.request = {'_': []}
 
     def __call__(self, environ, start_response):
-        path = environ['PATH_INFO'].strip('/')
+        path = environ['PATH_INFO']
+        if path.endswith("/"):
+          path += 'index.html'
+        path = path.strip('/')
 
         if not path:
             start_response('200 OK', [('Content-Type', 'text/html')])
             return ['<h1>THE INDEX PAGE!</h1>']
 
         serve = False
-        if path.startswith('static/'):
-            path = os.path.join(base_path, path)
-            serve = True
-        else:
-            for app_path in app_paths:
-                if path.startswith(app_path):
-                    app_path_slash = app_path + '/'
-                    path = os.path.join(base_path,'apps',app_path,'public',path.replace(app_path_slash,'',1))
-                    serve = True
-                    break
+        path = os.path.join(base_path, path)
+        serve = True
 
         if serve:
             try:
@@ -58,7 +50,6 @@ class Application(object):
         if path.startswith("socket.io"):
             routes = {
                 '/websnoed': websnoed.EventViewerNamespace,
-                '/cmos': cmos.CMOSRatesNamespace
             }
             socketio_manage(environ, routes, self.request)
         else:
