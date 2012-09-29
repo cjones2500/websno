@@ -6,8 +6,8 @@ monkey.patch_all()
 from socketio import socketio_manage
 from socketio.server import SocketIOServer
 
-from snostream.apps.websnoed import websnoed
-from snostream.apps.cmostest import cmos
+from websno.apps.websnoed import websnoed
+from websno.apps.cmostest import cmos
 
 base_path = os.path.abspath(os.path.dirname(__file__))
 

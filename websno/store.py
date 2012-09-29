@@ -7,7 +7,7 @@ to the user.
 import json
 import uuid
 
-from snostream.apps.cmostest.cmos import CMOSRatesNamespace
+from websno.apps.cmostest.cmos import CMOSRatesNamespace
 
 class DataStore:
     '''Base class for data storage interfaces'''

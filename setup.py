@@ -6,7 +6,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
-    name = "snostream",
+    name = "websno",
     version = "0.1",
     author = "atm rvb jk fd",
     author_email = "amastbaum@gmail.com",
@@ -19,8 +19,8 @@ setup(
         "Topic :: Scientific/Engineering :: Information Analysis",
         "License :: OSI Approved :: BSD License",
     ],
-    packages = ['snostream'],
-    scripts = ['bin/snostream'],
+    packages = ['websno'],
+    scripts = ['bin/websno'],
     install_requires = ['gevent-socketio'],
 )
 
