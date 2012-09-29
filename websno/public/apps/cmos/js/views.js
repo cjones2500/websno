@@ -108,6 +108,35 @@ websno.views.CmosRateList = Backbone.View.extend({
   }
 });
 
+websno.views.TimePlot = Backbone.View.extend({
+  initialize: function(options) {
+    _.bindAll(this,'onshow');
+    this.crate = options.crate;
+    this.id = options.id;
+    this.model = new websno.models.Channel({id: this.id, crate: this.crate});
+    websno.events.on('increment', this.model.increment, this.model);
+  },
+
+  render: function() {
+    this.model.on('change',this.onshow);
+    return this;
+  },
+
+  onshow: function() {
+    $.fragments = {};
+    this.plot = $.plot($(this.el),[this.model.data],{series: {shadowSize: 0}});
+  },
+
+  onclose: function() {
+    $(this.el).empty();
+    if (this.plot){
+      this.plot.shutdown();
+    }
+    this.model.off('change',this.render);
+    websno.events.off('increment',this.model.increment,this.model);
+  }
+});
+
 websno.views.CmosPage = Backbone.View.extend({
   className: 'row',
 
@@ -116,17 +145,24 @@ websno.views.CmosPage = Backbone.View.extend({
     this.model = new websno.collections.CrateList();
     this.screamers = new websno.views.SmallScreamerList();
     this.rates = new websno.views.CmosRateList({id: this.focus});
+    this.plot = new websno.views.TimePlot({id: 0, crate: this.focus});
   },
 
   render: function() {
     $(this.el).html(this.template());
     this.screamers.setElement(this.$('#smallscreamerlist')).render();
     this.rates.setElement(this.$('#cmosratelist')).render();
+    this.plot.setElement(this.$('#timeplot')).render();
     return this;
+  },
+
+  onshow: function() {
+    this.plot.onshow();
   },
 
   onclose: function() {
     this.screamers.close();
     this.rates.close();
+    this.plot.close();
   }
 });

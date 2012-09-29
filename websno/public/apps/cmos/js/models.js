@@ -1,3 +1,21 @@
+websno.models.Channel = Backbone.Model.extend({
+  initialize: function() {
+    this.data = [];
+  },
+
+  increment: function() {
+    if (this.data.length > 10){
+      this.data = this.data.slice(1);
+    }
+    if (this.data.length == 0){
+      this.data.push([1,0]);
+    }else{
+      this.data.push([this.data[this.data.length-1][0]+1,this.data[this.data.length-1][1]+1]);
+    }
+    this.trigger("change");
+  }
+});
+
 websno.models.Crate = Backbone.Model.extend({
   initialize: function() {
     this.set('screamers',0,{silent: true});
