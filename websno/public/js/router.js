@@ -11,15 +11,15 @@ websno.Router = Backbone.Router.extend({
   },
 
   home: function() {
-    this.showView(websno.views.Home);
+    this.showView(websno.views.HomePage);
   },
 
   cmos: function(id) {
-    this.showView(websno.views.Cmos,id);
+    this.showView(websno.views.CmosPage,id);
   },
 
   screamers: function() {
-    this.showView(websno.views.Screamers);
+    this.showView(websno.views.ScreamersPage);
   },
 
   showView: function(view,args) {

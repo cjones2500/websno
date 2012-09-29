@@ -5,7 +5,7 @@ var websno = {
   events: {},
 
   initialize: function(){
-    websno.templateLoader.load(["Header","Home","Cmos","Screamers"],function() {
+    websno.templateLoader.load(["Header","HomePage","CmosPage","ScreamersPage","Screamer"],function() {
       websno.router = new websno.Router();
       _.extend(websno.events,Backbone.Events);
       Backbone.history.start();

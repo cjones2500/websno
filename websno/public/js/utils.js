@@ -8,7 +8,7 @@ websno.templateLoader = {
           websno.views[view].prototype.template = _.template(data);
         }, 'html'));
       }else{
-        alert(view + " not found");
+        console.log(view + " not found");
       }
     });
     $.when.apply(null,deferreds).done(callback);

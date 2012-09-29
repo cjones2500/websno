@@ -1,4 +1,4 @@
-websno.views.Home = Backbone.View.extend({
+websno.views.HomePage = Backbone.View.extend({
   initialize: function() {
     console.log("home view");
   },
