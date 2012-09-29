@@ -15,7 +15,7 @@ websno.Router = Backbone.Router.extend({
   },
 
   cmos: function(id) {
-    this.showView(websno.views.CmosPage,id);
+    this.showView(websno.views.CmosPage,{id: id});
   },
 
   screamers: function() {

@@ -1,26 +1,18 @@
-websno.models.Channel = Backbone.Model.extend({
-  initialize: function() {
-    this.set('rate',0,{silent: true});
-  }
-});
-
-websno.collections.ChannelList = Backbone.Collection.extend({
-  model: websno.models.Channel
-});
-
 websno.models.Crate = Backbone.Model.extend({
   initialize: function() {
     this.set('screamers',0,{silent: true});
-    this.channels = new websno.collections.ChannelList();
-    for (var i=0;i<32;i++){
-      var id = this.id*32+i;
-      this.channels.add(new websno.models.Channel({id: id}),{silent: true});
-      delete id;
+    this.set('rates',[],{silent: true});
+    for (var i=0;i<512;i++){
+      this.attributes.rates.push(0);
     }
   },
 
   increment: function() {
     this.set('screamers',this.get('screamers')+1);
+    for (var i=0;i<512;i++){
+      this.attributes.rates[i] += 10;
+    }
+    this.trigger("change");
   }
 });
 

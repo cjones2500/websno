@@ -18,6 +18,20 @@ table.screamer {
   border-collapse: separate;
 }
 
+table.smallscreamer {
+  border-spacing: 2px;
+  border-collapse: separate;
+}
+
+.screamer td{
+  width: 45px;
+  height: 30px;
+  border: 2px solid black;
+  vertical-align: top;
+  line-height: 25px;
+  font-size: 14px;
+}
+
 .screamer td{
   width: 110px;
   height: 200px;

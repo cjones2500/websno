@@ -1,0 +1,16 @@
+Crate # <%= id%><br>
+<table class='cmosrate-crate'>
+  <tr>
+    <% for (var i=0;i<16;i++) { %>
+    <td>
+      <table class='cmosrate-fec'>
+        <% for (var j=0;j<32;j++) { %>
+        <tr>
+          <td><%= rates[i*32+j] %></td>
+        </tr>
+        <% } %>
+      </table>
+    </td>
+    <% } %>
+  </tr>
+</table>
