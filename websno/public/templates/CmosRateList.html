@@ -6,7 +6,15 @@ Crate # <%= id%><br>
       <table class='cmosrate-fec'>
         <% for (var j=0;j<32;j++) { %>
         <tr>
-          <td><%= rates[i*32+j] %></td>
+          <td>
+            <div>
+              <% if (rates[i*32+j] > 1000000) { %>
+              <% (parseInt(rates[i*32+j]/10000))/100 %> MHz
+              <% } else { %>
+              <%= rates[i*32+j] %>
+              <% } %>
+            </div>
+          </td>
         </tr>
         <% } %>
       </table>
