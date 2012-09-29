@@ -2,12 +2,19 @@
   <div class="navbar-inner">
     <div class="container">
       <a class="brand" href="#">WebSNO+</a>
-      <div class="nav-collapse">
-        <ul class="nav">
-          <li class="home-menu active"><a href="#">Home</a></li>
-          <li class="cmos-menu"><a href="#cmos">Cmos Rates</a></li>
+      <ul class="nav" role="navigation">
+        <li class="active"><a href="#">Home</a></li>
+        <li class="dropdown">
+        <a id="drop1" href="#" role="button" class="dropdown-toggle" data-toggle="dropdown">Cmos<b class="caret"></b></a>
+        <ul class="dropdown-menu" role="menu" aria-labelledby="drop1">
+          <li><a tabindex="-1" href="#cmos">Screamers</a></li>
+          <li class="divider"></li>
+          <li><a tabindex="-1" href="#cmos/0">Crate 0</a></li>
+          <li><a tabindex="-1" href="#cmos/1">Crate 0</a></li>
+          <li><a tabindex="-1" href="#cmos/2">Crate 0</a></li>
         </ul>
-      </div>
+        </li>
+      </ul>
     </div>
   </div>
 </div>

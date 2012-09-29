@@ -1,6 +1,7 @@
 websno.Router = Backbone.Router.extend({
   routes: {
-    "cmos": "cmos",
+    "cmos/:id": "cmos",
+    "cmos": "screamers",
     "*path": "home"
   },
 
@@ -13,8 +14,12 @@ websno.Router = Backbone.Router.extend({
     this.showView(websno.views.Home);
   },
 
-  cmos: function() {
-    this.showView(websno.views.Cmos);
+  cmos: function(id) {
+    this.showView(websno.views.Cmos,id);
+  },
+
+  screamers: function() {
+    this.showView(websno.views.Screamers);
   },
 
   showView: function(view,args) {
@@ -23,5 +28,8 @@ websno.Router = Backbone.Router.extend({
     }
     this.currentView = new view(args);
     $('#content').html(this.currentView.render().el);
+    if (this.currentView.onshow){
+      this.currentView.onshow();
+    }
   }
 });
