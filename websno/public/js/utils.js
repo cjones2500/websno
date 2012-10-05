@@ -15,10 +15,13 @@ websno.templateLoader = {
   }
 };
 
-Backbone.View.prototype.close = function() {
+Backbone.View.prototype.close = function(removedom) {
+  removedom = (typeof removedom === "undefined") ? true : removedom;
   if (this.onclose){
     this.onclose();
   }
-  this.remove();
+  if (removedom){
+    this.remove();
+  }
   this.unbind();
 }
