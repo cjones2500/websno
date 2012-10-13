@@ -138,6 +138,7 @@ websno.views.TimePlot = Backbone.View.extend({
   },
 
   render: function() {
+    $(this.el).html(this.template(this.model.toJSON())); 
     this.model.on('change',this.onshow);
     return this;
   },
