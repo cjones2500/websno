@@ -21,6 +21,9 @@ class Application(object):
           path += 'index.html'
         path = path.strip('/')
 
+        print path
+        print base_path
+
         if not path:
             start_response('200 OK', [('Content-Type', 'text/html')])
             return ['<h1>THE INDEX PAGE!</h1>']

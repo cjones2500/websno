@@ -6,6 +6,7 @@ to the user.
 
 import json
 import uuid
+import bisect
 
 class DataStore:
     '''Base class for data storage interfaces'''
@@ -41,6 +42,91 @@ class MemoryStore(DataStore):
 
         return l
 
+class CrateSlotStore(DataStore):
+    '''Hold queues in lists'''
+    def __init__(self):
+        DataStore.__init__(self)
+
+        self._store = {
+            'pmt_base_current': [[{'ts':[0 for x in range(300)], 'v':[{} for x in range(300)]} for sl in range(16)] for cr in range(19)],
+            'cmos_rate': [[{'ts':[0 for x in range(300)], 'v':[{} for x in range(300)]} for sl in range(16)] for cr in range(19)],
+            'fec_vlt': [[{'ts':[0 for x in range(300)], 'v':[{} for x in range(300)]} for sl in range(16)] for cr in range(19)],
+            'xl3_hv': [{'ts':[0 for x in range(3600)], 'v':[{} for x in range(3600)]} for cr in range(19)],
+            'xl3_vlt': [{'ts':[0 for x in range(3600)], 'v':[{} for x in range(3600)]} for cr in range(19)],
+            'fifo_state': [{'ts':[0 for x in range(3600)], 'v':[{} for x in range(3600)]} for cr in range(19)]
+        }
+
+        self.crate_slot = ['pmt_base_current', 'fec_vlt', 'cmos_rate']
+        self.crate_only = ['xl3_hv', 'xl3_vlt', 'fifo_state']
+
+    def set(self, l):
+        '''Store a list of key/value/timestamp dicts, keep it sorted'''
+        for o in l:
+            if o['key'] in self.crate_slot:
+                slot = self._store['pmt_base_current'][o['crate_num']][o['slot_num']]
+                #todo add direction, if we add to past, remove future
+                slot['ts'].pop(0)
+                slot['v'].pop(0)
+                #todo: do not pop, reduce instead into a long term store
+                idx_in = bisect.bisect_left(slot['ts'], o['ts'])
+                slot['ts'].insert(idx_in, o['ts'])
+                slot['v'].insert(idx_in, o['v'])
+
+            elif o['key'] in self.crate_only:
+                crate = self._store['xl3_hv'][o['crate_num']]
+                crate['ts'].pop(0)
+                crate['v'].pop(0)
+                idx_in = bisect.bisect_left(crate['ts'], o['ts'])
+                crate['ts'].insert(idx_in, o['ts'])
+                crate['v'].insert(idx_in, o['v'])
+
+
+    def get(self, key, dic):
+        #todo: redo
+        '''Get a list of (timestamp, value) tuples for the requested key over
+        the specified time interval (in seconds since epoch).
+
+        :param key: Field (queue) name to look up
+        :param interval: tuple -- *optional* (start, end) times to get
+        :returns: list of (timestamp, value) tuples
+        '''
+
+        crate = dic.get('crate', (0, 18))
+        cr_l = range(crate[0], crate[1] + 1)
+        slot = dic.get('slot', (0, 15))
+        sl_l = range(slot[0], slot[1] + 1)
+        interval = dic.get('interval', (1, 3e9))
+
+        l = []
+        if key in self.crate_slot:
+            for cr in range(19):
+                lc = []
+                if cr in cr_l:
+                    for sl in range(16):
+                        ls = []
+                        if sl in sl_l:
+                            idx_fr = bisect.bisect_left(self._store[key][cr][sl]['ts'], interval[0])
+                            idx_to = bisect.bisect_right(self._store[key][cr][sl]['ts'], interval[1], idx_fr)
+                            ls.append({
+                                'ts': self._store[key][cr][sl]['ts'][idx_fr:idx_to],
+                                'v': self._store[key][cr][sl]['v'][idx_fr:idx_to]
+                            })
+                        lc.append(ls)
+                l.append(lc)
+
+        elif key in self.crate_only:
+            for cr in range(19):
+                lc = []
+                if cr in cr_l:
+                    idx_fr = bisect.bisect_left(self._store[key][cr]['ts'], interval[0])
+                    idx_to = bisect.bisect_right(self._store[key][cr]['ts'], interval[1], idx_fr)
+                    lc.append({
+                        'ts': self._store[key][cr]['ts'][idx_fr:idx_to],
+                        'v': self._store[key][cr]['v'][idx_fr:idx_to]
+                    })
+                l.append(lc)
+
+        return l
 
 class CouchDBStore(DataStore):
     '''Store queues in a CouchDB database'''

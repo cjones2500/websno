@@ -214,46 +214,76 @@ class OrcaJSONStream(InputStream):
         InputStream.__init__(self, callback)
 
         self.address = address
+        from websno.inputstreams import orcajson
+
+        self.orca_json_worker = orcajson.OrcaJSONWorker()
+        self.orca_json_worker.start()
 
     def run(self):
-        import zmq
+        from zmq import green as zmq
+
         self._context = zmq.Context() # if multiple zmq streams, move this up
-        self._socket = self._context.socket(zmq.REP)
+
+        self._socket = self._context.socket(zmq.SUB)
         self._socket.connect(self.address)
-        
+        self._socket.setsockopt(zmq.SUBSCRIBE, '')
+
+        self._ssocket = self._context.socket(zmq.PUSH)
+        self._ssocket.connect('ipc:///tmp/snostream_orcajson_input')
+
+        self._rsocket = self._context.socket(zmq.PULL)
+        self._rsocket.bind('ipc:///tmp/snostream_orcajson_output')
+
+        poller = zmq.Poller()
+        poller.register(self._socket, zmq.POLLIN)
+        poller.register(self._rsocket, zmq.POLLIN)
+
         while True:
             try:
-                # use non-blocking recv to avoid GIL, since this is a Thread
-                # throws ZMQError if no data is available
-                o = self._socket.recv_json(zmq.NOBLOCK)
+                socks = dict(poller.poll(100))
             except zmq.ZMQError:
-                time.sleep(0.5) # fixme?
+                print 'poll failed'
+                socks = []
                 continue
 
-            self._socket.send_json({'ok': True}) # probably make this PUB/SUB someday
+            if self._socket in socks and socks[self._socket] == zmq.POLLIN:
+                o = self._socket.recv_json()
 
-            # handle different document types
-            if o['type'] == 'cmos_rates':
-                if 'timestamp' in o:
-                    sample_time = o['timestamp']
-                else:
-                    sample_time = time.time()
+                '''
+                if o['type'] == 'cmos_rates':
+                    if 'timestamp' in o:
+                        sample_time = o['timestamp']
+                    else:
+                        sample_time = time.time()
 
-                l = []
-                for channel in o['channels']:
-                    idx = channel['id']
-                    rate = channel['rate']
+                    l = []
+                    for channel in o['channels']:
+                        idx = channel['id']
+                        rate = channel['rate']
 
-                    k = '%s_%i' % (o['type'], idx)
-                    v = rate
+                        k = '%s_%i' % (o['type'], idx)
+                        v = rate
 
-                    l.append({
-                        'key': k,
-                        'timestamp': sample_time,
-                        'value': v
-                    })
+                        l.append({
+                            'key': k,
+                            'timestamp': sample_time,
+                            'value': v
+                        })
 
-                self.callback(l)
+                    self.callback(l)
+                '''
+
+                try:
+                    self._ssocket.send_pyobj(o, zmq.NOBLOCK)
+                except zmq.ZMQError:
+                    #correct way would be to add 1. ssocket into poller as zmq.POLLOUT 2. a queue
+                    continue
+
+            if self._rsocket in socks and socks[self._rsocket] == zmq.POLLIN:
+                o = self._rsocket.recv_pyobj()
+                self.callback(o)
+
+        self.orca_json_worker.join()
 
 class CouchDBChanges(InputStream):
     '''Read changes from a CouchDB database'''
