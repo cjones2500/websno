@@ -25,11 +25,14 @@ class Application(object):
             start_response('200 OK', [('Content-Type', 'text/html')])
             return ['<h1>THE INDEX PAGE!</h1>']
 
-        serve = False
-        path = os.path.join(base_path, path)
-        serve = True
 
-        if serve:
+        if path.startswith("socket.io"):
+            routes = {
+                '/websnoed': websnoed.EventViewerNamespace,
+            }
+            socketio_manage(environ, routes, self.request)
+        else:
+            path = os.path.join(base_path, path)
             try:
                 data = open(path).read()
             except Exception:
@@ -46,14 +49,6 @@ class Application(object):
 
             start_response('200 OK', [('Content-Type', content_type)])
             return [data]
-
-        if path.startswith("socket.io"):
-            routes = {
-                '/websnoed': websnoed.EventViewerNamespace,
-            }
-            socketio_manage(environ, routes, self.request)
-        else:
-            return not_found(start_response)
 
 def not_found(start_response):
     start_response('404 Not Found', [])
