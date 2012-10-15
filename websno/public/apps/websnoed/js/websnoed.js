@@ -55,18 +55,20 @@ var websnoed = (function() {
     var event_metadata = document.createElement('span');
     event_metadata.style.position = 'absolute';
     event_metadata.id = 'event-meta';
-    event_metadata.style.top = '10px';
+    event_metadata.style.left = '5px';
+    event_metadata.style.top = '50px';
     event_metadata.style.color = 'white';
+    event_metadata.style.padding = '5px';
     event_metadata.style.background = 'rgba(1,1,1,0.8)';
-    event_metadata.style.border = 'solid 1px 0x55555';
+    event_metadata.style.border = 'solid 1px #555555';
     event_metadata.innerHTML = '<span id="meta-source"></span><br/><span id="meta-nhit"></span><br/><span id="meta-gtid"></span><br/><span id="meta-trig"></span>';
     wsed.container.appendChild(event_metadata);
 
     var crates = document.createElement('div');
     crates.style.position = 'absolute';
     crates.id = 'crates';
-    crates.style.top = '10px';
-    crates.style.left = String(window.innerWidth - 300) + 'px';
+    crates.style.top = '50px';
+    crates.style.left = String(window.innerWidth - 275) + 'px';
     crates.style.width = '300px';
     crates.style.height = '105px';
     crates.style.color = 'white';
@@ -76,29 +78,33 @@ var websnoed = (function() {
     var charge_plot = document.createElement('div');
     charge_plot.style.position = 'absolute';
     charge_plot.id = 'plot-charge';
-    charge_plot.style.top = '110px';
+    charge_plot.style.top = String(window.innerHeight - 180) + 'px';
+    charge_plot.style.left = '5px';
     charge_plot.style.width = '300px';
     charge_plot.style.height = '175px';
     charge_plot.style.color = 'white';
-    charge_plot.style.background = 'rgba(0,0,0,0.8)';
+    charge_plot.style.padding = '5px';
+    charge_plot.style.background = 'rgba(1,1,1,0.8)';
     charge_plot.style.textAlign = 'center';
     wsed.container.appendChild(charge_plot);
 
     var time_plot = document.createElement('div');
     time_plot.style.position = 'absolute';
     time_plot.id = 'plot-time';
-    time_plot.style.top = '285px';
+    time_plot.style.top = String(window.innerHeight - 370) + 'px';
+    time_plot.style.left = '5px';
     time_plot.style.width = '300px';
     time_plot.style.height = '175px';
     time_plot.style.color = 'white';
-    time_plot.style.background = 'rgba(0,0,0,0.8)';
+    time_plot.style.padding = '5px';
+    time_plot.style.background = 'rgba(1,1,1,0.8)';
     time_plot.style.textAlign = 'center';
     wsed.container.appendChild(time_plot);
 
     var caen_0 = document.createElement('div');
     caen_0.style.position = 'absolute';
     caen_0.id = 'plot-caen-0';
-    caen_0.style.top = '550px';
+    caen_0.style.top = String(window.innerHeight - 170) + 'px';
     caen_0.style.left = String(window.innerWidth - 295) + 'px';
     caen_0.style.width = '280px';
     caen_0.style.height = '80px';
@@ -110,7 +116,7 @@ var websnoed = (function() {
     var caen_2 = document.createElement('div');
     caen_2.style.position = 'absolute';
     caen_2.id = 'plot-caen-2';
-    caen_2.style.top = '640px';
+    caen_2.style.top = String(window.innerHeight - 85) + 'px';
     caen_2.style.left = String(window.innerWidth - 295) + 'px';
     caen_2.style.width = '280px';
     caen_2.style.height = '80px';
@@ -123,15 +129,17 @@ var websnoed = (function() {
     var control_widget = document.createElement('div');
     control_widget.style.position = 'absolute';
     control_widget.id = 'control-widget';
-    control_widget.style.top = '560px';
+    control_widget.style.top = '140px';
+    control_widget.style.left = '5px';
+    control_widget.style.padding = '5px';
     control_widget.style.width = '200px';
     control_widget.style.color = 'white';
     control_widget.style.background = 'rgba(0,0,0,0.8)';
-    control_widget.style.border = 'solid 2px #444';
+    control_widget.style.border = 'solid 1px #555555';
     control_widget.style.textAlign = 'left';
     wsed.container.appendChild(control_widget);
 
-    var control_html = '<span style="font-size:large;font-weight:bold;">Event Control</span><br/><br/><div style="text-align:center"><button id="control-back" class="wsed-control">&#9668;</button>&nbsp;<button id="control-pause" class="wsed-control">x</button>&nbsp;<button id="control-forward" class="wsed-control">&#9658;</button><br/><br/><button type="button" data-toggle="modal" onclick="websnoed.show_settings()" id="show-settings">Show Settings</button><div id="settings" style="display:none"><form id="control-settings"><table style="font-size:smaller"><tr><th><label for="nhit_threshold" style="color:#ddd">NHIT Threshold</label></th><td><input id="nhit_threshold" type="text" class="wsed-setting"/></td></tr><tr><th><label for="trigger_type" style="color:white">Trigger Type</label></th><td><input id="trigger_type" class="wsed-setting"/></td></tr></table><div style="text-align:center"><button class="wsed-control">Set</button></div></form></div></div></div>';
+    var control_html = '<span style="font-size:11pt;font-weight:bold;">Event Control</span><br/><br/><div style="text-align:center"><button id="control-back" class="wsed-control">&#9668;</button>&nbsp;<button id="control-pause" class="wsed-control">x</button>&nbsp;<button id="control-forward" class="wsed-control">&#9658;</button><br/><br/><button type="button" data-toggle="modal" onclick="websnoed.show_settings()" id="show-settings">Show Settings</button><div id="settings" style="display:none"><br/><form id="control-settings"><table style="font-size:smaller"><tr><th><label for="nhit_threshold" style="color:#ddd">NHIT Threshold</label></th><td><input id="nhit_threshold" type="text" class="wsed-setting"/></td></tr><tr><th><label for="trigger_type" style="color:white">Trigger Type</label></th><td><input id="trigger_type" class="wsed-setting"/></td></tr></table><div style="text-align:center"><button class="wsed-control">Set</button></div></form></div></div></div>';
 
     $('#control-widget').html(control_html);
 
@@ -140,13 +148,13 @@ var websnoed = (function() {
     $('#trigger_type').live('click', function(e) { $(this).focus(); });
 
     // crate view
-    var html = '<table style="font-size:4pt"><tr>';
+    var html = '<table style="font-size:4pt;border-collapse:separate;border-spacing:1px"><tr>';
     for (var icrate=0; icrate<19; icrate++) {
-      html += '<td><table style="background:rgba(1,1,1,0.75);padding:2px" cellspacing="1px" cellpadding="1px">';
+      html += '<td><table style="background:rgba(0,0,0,0.75);padding:2px;border-collapse:separate;border-spacing:1px" cellspacing="1px" cellpadding="1px">';
       for (var ichan=0; ichan<32; ichan++) {
         html += '<tr>'
         for (var icard=0; icard<16; icard++) {
-          html += '<td style="height:1px;width:1px;background:#555555" id="channel-' + icrate + '_' + icard + '_' + ichan + '"></td>';
+          html += '<td style="height:1px;width:1px;background:#555555;" id="channel-' + icrate + '_' + icard + '_' + ichan + '"></td>';
         }
         html += '</tr>';
       }
@@ -357,19 +365,19 @@ var websnoed = (function() {
     }
   };
 
-
   // plots
   wsed.plot_options = {
     series: { shadowSize: 0 }, // drawing is faster without shadows
-    yaxis: { min: 0, max: 250 },
-    xaxis: { min: 0, max: 4095 },
+    //yaxis: { min: 0, max: 250 },
+    //xaxis: { min: 0, max: 4095 },
     bars: { show: true }
   };
   
   wsed.plot_options_caen = {
     series: { shadowSize: 0 }, // drawing is faster without shadows
-    yaxis: { min: 0, max: 5 },
-    xaxis: { min: 0, max: 110 },
+    //yaxis: { min: 0, max: 500 },
+    //xaxis: { min: 0, max: 110 },
+    autoscaleMargin: 0.9
   };
 
   wsed.update_plot = function(name, data) {

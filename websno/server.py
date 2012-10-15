@@ -58,8 +58,8 @@ def not_found(start_response):
     return ['<h1>Not Found</h1>']
 
 def serve():
-    print 'Listening on port 8080 and on port 843 (flash policy server)'
-    SocketIOServer(('0.0.0.0', 8080), Application(),
+    print 'Listening on port 8051 and on port 10843 (flash policy server)'
+    SocketIOServer(('0.0.0.0', 8051), Application(),
         resource="socket.io", policy_server=True,
         policy_listener=('0.0.0.0', 10843)).serve_forever()
 

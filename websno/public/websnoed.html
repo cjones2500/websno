@@ -1,20 +1,25 @@
-<html lang="en">
+<html>
   <head>
     <title>websnoed</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link href="vendor/css/bootstrap-dark.css" rel="stylesheet"/>
+    <link href="css/style.css" rel="stylesheet"/>
+    <link href="apps/websnoed/css/style.css" rel="stylesheet"/>
     <style>
       body {
         font-family: sans-serif;
         background-color: #000;
-        margin: 10px;
         overflow: hidden;
+        margin-top: -25px;
+      }
+      div.ui-frame {
+        margin: 5px;
       }
     </style>
-    <link href="css/style.css" rel="stylesheet">
-    <link href="apps/websnoed/css/style.css" rel="stylesheet">
     <script type="text/javascript" src="vendor/js/jquery-1.8.1.js"></script>
     <script type="text/javascript" src="vendor/js/socket.io.js"></script>
+    <script type="text/javascript" src="vendor/js/bootstrap.js"></script>
     <script type="text/javascript" src="vendor/js/Three.js"></script>
     <script type="text/javascript" src="apps/websnoed/js/pmtpos.js"></script>
     <script type="text/javascript" src="vendor/js/flot/jquery.flot.min.js"></script>
@@ -25,10 +30,6 @@
       WEB_SOCKET_DEBUG = true;
 
       var socket = io.connect('/websnoed');
-
-      socket.on('connect', function () {
-        $('#chat').addClass('connected');
-      });
 
       socket.on('alarm', function (msg) {
         message('Alarm', msg);
@@ -54,45 +55,87 @@
 
       function message(from, msg) {
         $('body').append($('<p style="color:white">').append($('<b>').text(from), msg));
-      }
+        }
 
-      $('#control-back').live('click', function(e) {
-        console.log('control back');
-        socket.emit('control_back');
-      });
+        $('#control-back').live('click', function(e) {
+          console.log('control back');
+          socket.emit('control_back');
+        });
 
-      $('#control-forward').live('click', function(e) {
-        console.log('control forward');
-        socket.emit('control_forward');
-      });
+        $('#control-forward').live('click', function(e) {
+          console.log('control forward');
+          socket.emit('control_forward');
+        });
 
-      $('#control-pause').live('click', function(e) {
-        console.log('control pause');
-        socket.emit('control_toggle_pause');
-      });
+        $('#control-pause').live('click', function(e) {
+          console.log('control pause');
+          socket.emit('control_toggle_pause');
+        });
 
-      $('#control-settings').live('submit', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('control settings');
-        var settings = {
-          nhit_threshold: $('#nhit_threshold').val(),
-          trigger_type: $('#trigger_type').val()
-        };
-        socket.emit('configure', settings);
-      });
+        $('#control-settings').live('submit', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('control settings');
+          var settings = {
+            nhit_threshold: $('#nhit_threshold').val(),
+            trigger_type: $('#trigger_type').val()
+          };
+          socket.emit('configure', settings);
+        });
 
-      $(document).ready(function () {
-        socket.emit('initialize', []);
-        websnoed.init();
-        websnoed.plots = {
-          charge: $.plot($("#plot-charge"), [{label: 'qhs', data: [[0,0],[4096,0]]}], websnoed.plot_options),
-          time: $.plot($("#plot-time"), [{label: 'time', data: [[0,0],[4096,0]]}], websnoed.plot_options),
-          caen_0: $.plot($("#plot-caen-0"), [{label: '0', data: [[0,0],[440,0]]}], websnoed.plot_options_caen),
-          caen_2: $.plot($("#plot-caen-2"), [{label: '2', data: [[0,0],[440,0]]}], websnoed.plot_options_caen)
-        };
-      });
-    </script>
-  </head>
-</html>
+        $(document).ready(function () {
+          socket.emit('initialize', []);
+          websnoed.init();
+          websnoed.plots = {
+            charge: $.plot($("#plot-charge"), [{label: 'qhs', data: [[0,0],[4096,0]]}], websnoed.plot_options),
+            time: $.plot($("#plot-time"), [{label: 'time', data: [[0,0],[4096,0]]}], websnoed.plot_options),
+            caen_0: $.plot($("#plot-caen-0"), [{label: '0', data: [[0,0],[440,0]]}], websnoed.plot_options_caen),
+            caen_2: $.plot($("#plot-caen-2"), [{label: '2', data: [[0,0],[440,0]]}], websnoed.plot_options_caen)
+          };
+        });
+      </script>
+
+    </head>
+    <body>
+      <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+          <div class="container">
+            <a class="brand" href="#">Detector Monitoring</a>
+            <ul class="nav" role="navigation">
+              <li><a href="index.html">Overview</a></li>
+              <li class="dropdown">
+              <a id="drop1" href="#" role="button" class="dropdown-toggle" data-toggle="dropdown">Cmos<b class="caret"></b></a>
+              <ul class="dropdown-menu" role="menu" aria-labelledby="drop1">
+                <li><a tabindex="-1" href="index.html#cmos">Screamers</a></li>
+                <li class="divider"></li>
+                <li><a tabindex="-1" href="index.html#cmos/0">Crate 0</a></li>
+                <li><a tabindex="-1" href="index.html#cmos/1">Crate 1</a></li>
+                <li><a tabindex="-1" href="index.html#cmos/2">Crate 2</a></li>
+                <li><a tabindex="-1" href="index.html#cmos/3">Crate 3</a></li>
+                <li><a tabindex="-1" href="index.html#cmos/4">Crate 4</a></li>
+                <li><a tabindex="-1" href="index.html#cmos/5">Crate 5</a></li>
+                <li><a tabindex="-1" href="index.html#cmos/6">Crate 6</a></li>
+                <li><a tabindex="-1" href="index.html#cmos/7">Crate 7</a></li>
+                <li><a tabindex="-1" href="index.html#cmos/8">Crate 8</a></li>
+                <li><a tabindex="-1" href="index.html#cmos/9">Crate 9</a></li>
+                <li><a tabindex="-1" href="index.html#cmos/10">Crate 10</a></li>
+                <li><a tabindex="-1" href="index.html#cmos/11">Crate 11</a></li>
+                <li><a tabindex="-1" href="index.html#cmos/12">Crate 12</a></li>
+                <li><a tabindex="-1" href="index.html#cmos/13">Crate 13</a></li>
+                <li><a tabindex="-1" href="index.html#cmos/14">Crate 14</a></li>
+                <li><a tabindex="-1" href="index.html#cmos/15">Crate 15</a></li>
+                <li><a tabindex="-1" href="index.html#cmos/16">Crate 16</a></li>
+                <li><a tabindex="-1" href="index.html#cmos/17">Crate 17</a></li>
+                <li><a tabindex="-1" href="index.html#cmos/18">Crate 18</a></li>
+                <li><a tabindex="-1" href="index.html#cmos/19">Crate 19</a></li>
+              </ul>
+              </li>
+              <li class="active"><a href="websnoed.html">Event Display</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </body>
+
+  </html>
 

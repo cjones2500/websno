@@ -8,3 +8,13 @@ input.wsed-setting {
   background: rgba(255,255,255,0.2);
   border: none;
 }
+
+.table td {
+  padding: 8px;
+  line-height: 20px;
+  text-align: left;
+  vertical-align: top;
+  border-top: 1px solid #dddddd;
+}
+
+
