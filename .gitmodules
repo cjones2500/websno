@@ -1,0 +1,3 @@
+[submodule "websno/public/vendor/js/flot"]
+	path = websno/public/vendor/js/flot
+	url = git@github.com:flot/flot
