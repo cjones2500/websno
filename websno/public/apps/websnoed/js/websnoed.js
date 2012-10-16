@@ -366,23 +366,35 @@ var websnoed = (function() {
   };
 
   // plots
+  wsed.plot_tick_generator = function(axis, nticks) {
+    var v = [];
+    for (var i=0; i<=nticks; i++) {
+      v.push(axis.max/nticks*i);
+    }
+    return v;
+  }
+
   wsed.plot_options = {
-    series: { shadowSize: 0 }, // drawing is faster without shadows
-    //yaxis: { min: 0, max: 250 },
-    //xaxis: { min: 0, max: 4095 },
-    bars: { show: true }
+    series: { shadowSize: 0, color: 'green' },
+    bars: { show: true },
+    xaxis: { min:0, max: 4096, ticks: 10 },
+    yaxis: { ticks: function(axis) { return wsed.plot_tick_generator(axis, 10) }}
   };
   
   wsed.plot_options_caen = {
-    series: { shadowSize: 0 }, // drawing is faster without shadows
-    //yaxis: { min: 0, max: 500 },
-    //xaxis: { min: 0, max: 110 },
-    autoscaleMargin: 0.9
+    series: { shadowSize: 0, color: 'green' },
+    xaxis: { min: 0, max: 110, ticks: 10 },
+    yaxis: { ticks: function(axis) { return wsed.plot_tick_generator(axis, 5) }}
   };
 
   wsed.update_plot = function(name, data) {
     if (wsed.plots && wsed.plots[name]) {
-      wsed.plots[name].setData([{label: name, data: data}]);
+      wsed.plots[name].setData([{
+        label: name,
+        data: data,
+      }]);
+
+      wsed.plots[name].setupGrid();
       wsed.plots[name].draw();
     }
   };
