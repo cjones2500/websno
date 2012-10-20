@@ -2,7 +2,7 @@
 
 import sys
 import websno.server
-from websno.stream import EventPickleFile, RATRootFile, ZDABFile
+from websno.stream import EventPickleFile, RATRootFile, ZDABFile, ZDABDispatch
 from websno.apps.websnoed import EventViewerNamespace
 
 if __name__ == '__main__':
@@ -22,12 +22,11 @@ if __name__ == '__main__':
         f = ZDABFile(sys.argv[1], EventViewerNamespace.broadcast_event)
 
     else:
-        print 'Unknown file format'
-        sys.exit(2)
+        f = ZDABDispatch(sys.argv[1], EventViewerNamespace.broadcast_event)
 
     f.start()
 
-    print '\nVisit http://localhost:8080/websnoed.html to view events\n'
+    print '\nVisit http://localhost:8051/websnoed.html to view events\n'
 
     # start web/socket server
     websno.server.serve()

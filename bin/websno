@@ -5,11 +5,10 @@ import sys
 import websno
 
 import websno.server
-from websno.stream import EventPickleFile, RATRootFile, ZDABFile, OrcaJSONStream
+from websno.stream import EventPickleFile, RATRootFile, ZDABFile, OrcaJSONStream, ZDABDispatch
 from websno.store import MemoryStore, CouchDBStore, CrateSlotStore
 
 from websno.apps.websnoed import EventViewerNamespace
-
 if __name__ == '__main__':
     # event source
     if len(sys.argv) > 1:
@@ -20,8 +19,7 @@ if __name__ == '__main__':
         elif sys.argv[1].endswith('.zdab'):
             websno.event_source = ZDABFile(sys.argv[1], EventViewerNamespace.broadcast_event)
         else:
-            print 'Unknown file format'
-            sys.exit(1)
+            websno.event_source = ZDABDispatch(sys.argv[1], EventViewerNamespace.broadcast_event)
 
     if websno.event_source:
         if hasattr(websno.event_source, 'get'):
@@ -34,9 +32,9 @@ if __name__ == '__main__':
     websno.data_store = CrateSlotStore()
 
     # other data sources
-    orca_json = OrcaJSONStream('tcp://localhost:5028', websno.data_store.set)
-    websno.data_sources.append(orca_json)
-    orca_json.start()
+    #orca_json = OrcaJSONStream('tcp://localhost:5028', websno.data_store.set)
+    #websno.data_sources.append(orca_json)
+    #orca_json.start()
 
     # start web/socket server
     websno.server.serve()

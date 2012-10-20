@@ -185,14 +185,18 @@ class ZDABDispatch(EventSource):
 
         import ratzdab
         self.dispatcher = ratzdab.dispatch(hostname)
-        
+
     def run(self):
         '''ship events as they arrive from the zdab dispatch'''
         import ratzdab
 
         while True:
             try:
-                o = self.dispatch.next()
+                o = self.dispatcher.next(False)
+
+                if not o:
+                    time.sleep(0.01)
+                    continue
 
                 if o.IsA() == ratzdab.ROOT.RAT.DS.Root.Class():
                     d = RATRootFile.ev_to_dict(o.GetEV(0), 'ZDAB Dispatch: %s' % self.hostname)
