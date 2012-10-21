@@ -1,21 +1,17 @@
 '''Data input interface
 
-Data sources run in separate threading.Threads and push their data via a
+Data sources run in separate threading. Threads and push their data via a
 user-provided callback.
 '''
 
 import time
-import calendar
 import threading
+import websno
 
 class InputStream(threading.Thread):
     '''An objects which receives data and passes it along via a callback'''
-    def __init__(self, callback):
+    def __init__(self):
         threading.Thread.__init__(self)
-        self.callback = callback
-
-    def run(self):
-        raise Exception('Cannot call run on InputStream base class')
 
 
 class EventSource(InputStream):
@@ -33,8 +29,8 @@ class EventSource(InputStream):
 
 class EventPickleFile(EventSource):
     '''Special event format for websnoed testing'''
-    def __init__(self, filename, callback, interval=2):
-        InputStream.__init__(self, callback)
+    def __init__(self, filename, interval=2):
+        InputStream.__init__(self)
 
         self.interval = interval
         self.filename = filename
@@ -48,7 +44,9 @@ class EventPickleFile(EventSource):
         '''ship events on a fixed timer'''
         for ev in self.events:
             ev['source'] = 'Event Pickle: %s' % self.filename
-            self.callback(self.idx, ev)
+
+            websno.records['event_data'].set(self.iidx, ev)
+
             self.idx += 1
             time.sleep(self.interval)
 
@@ -62,8 +60,8 @@ class EventPickleFile(EventSource):
 
 class RATRootFile(EventSource):
     '''Read events and records from a RAT ROOT file'''
-    def __init__(self, filename, callback, interval=2):
-        InputStream.__init__(self, callback)
+    def __init__(self, filename, interval=2):
+        InputStream.__init__(self)
 
         self.filename = filename
         self.interval = interval
@@ -126,7 +124,7 @@ class RATRootFile(EventSource):
 
             if self.ds.GetEVCount() > 0:
                 d = self.ev_to_dict(self.ds.GetEV(0), 'RAT File: %s' % self.filename)
-                self.callback(i, d) 
+                websno.records['event_data'].set(i, d)
                 self.idx = i
 
             time.sleep(self.interval)
@@ -142,8 +140,8 @@ class RATRootFile(EventSource):
 
 class ZDABFile(EventSource):
     '''Read events and records from a ZDAB file'''
-    def __init__(self, filename, callback, interval=2):
-        InputStream.__init__(self, callback)
+    def __init__(self, filename, interval=2):
+        InputStream.__init__(self)
 
         self.filename = filename
         self.interval = interval
@@ -165,7 +163,7 @@ class ZDABFile(EventSource):
 
                 if o.IsA() == ratzdab.ROOT.RAT.DS.Root.Class():
                     d = RATRootFile.ev_to_dict(o.GetEV(0), 'ZDAB File: %s' % self.filename)
-                    self.callback(o.GetEV(0).GetEventID(), d)
+                    websno.records['event_data'].set(o.GetEV(0).GetEventID(), d)
                     self.idx += 1
                     time.sleep(self.interval)
 
@@ -178,16 +176,19 @@ class ZDABFile(EventSource):
 
 class ZDABDispatch(EventSource):
     '''Receive events and records from a ZDAB dispatch stream'''
-    def __init__(self, hostname, callback):
-        InputStream.__init__(self, callback)
+    def __init__(self, hostname, interval=1):
+        InputStream.__init__(self)
 
         self.hostname = hostname
+        self.interval = interval
+        self.previous_event_arrival_time = 0
 
         import ratzdab
         self.dispatcher = ratzdab.dispatch(hostname)
 
     def run(self):
         '''ship events as they arrive from the zdab dispatch'''
+        import time
         import ratzdab
 
         while True:
@@ -198,9 +199,13 @@ class ZDABDispatch(EventSource):
                     time.sleep(0.01)
                     continue
 
+                event_arrival_time = time.time()
+                if event_arrival_time > previous_event_arrival_time - interval:
+                    continue
+
                 if o.IsA() == ratzdab.ROOT.RAT.DS.Root.Class():
                     d = RATRootFile.ev_to_dict(o.GetEV(0), 'ZDAB Dispatch: %s' % self.hostname)
-                    self.callback(o.GetEV(0).GetEventID(), d)
+                    websno.records['event_data'].set(o.GetEV(0).GetEventID(), d)
 
             except Exception: # fixme: it's a ratzdab::unknown_record_error
                 continue
@@ -208,14 +213,15 @@ class ZDABDispatch(EventSource):
 
 class OrcaRootStream(InputStream):
     '''Read and JSONize objects from a normal OrcaRoot stream'''
-    def __init__(self, callback):
-        InputStream.__init__(self, callback)
+    def __init__(self):
+        raise Exception('OrcaRootStream is not implemented')
+        InputStream.__init__(self)
 
 
 class OrcaJSONStream(InputStream):
     '''Read documents from a ZeroMQ OrcaRoot JSON stream'''
-    def __init__(self, address, callback):
-        InputStream.__init__(self, callback)
+    def __init__(self, address):
+        InputStream.__init__(self)
 
         self.address = address
         from websno.inputstreams import orcajson
@@ -246,7 +252,7 @@ class OrcaJSONStream(InputStream):
             try:
                 socks = dict(poller.poll(100))
             except zmq.ZMQError:
-                print 'poll failed'
+                print 'OrcaJSONStream: Poll failed'
                 socks = []
                 continue
 
@@ -285,14 +291,15 @@ class OrcaJSONStream(InputStream):
 
             if self._rsocket in socks and socks[self._rsocket] == zmq.POLLIN:
                 o = self._rsocket.recv_pyobj()
-                self.callback(o)
+                # FIXME
+                #websno.records['event_data'].set(o)
 
         self.orca_json_worker.join()
 
 class CouchDBChanges(InputStream):
     '''Read changes from a CouchDB database'''
-    def __init__(self, host, dbname, callback, username=None, password=None):
-        InputStream.__init__(self, callback)
+    def __init__(self, host, dbname, username=None, password=None):
+        InputStream.__init__(self)
         import couchdb
 
         couch = couchdb.Server(host)
@@ -305,5 +312,7 @@ class CouchDBChanges(InputStream):
     def run(self):
         for change in self.db.changes(include_docs=True, heartbeat=50000, feed='continuous'):
             doc = change['doc']
-            self.callback(doc)
+
+            if doc['type'] == 'rack_low_voltage':
+                websno.records['rack_low_voltage'].set(o)
 

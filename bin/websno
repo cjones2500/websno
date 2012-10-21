@@ -5,42 +5,49 @@ import sys
 import websno
 
 import websno.server
-from websno.stream import EventPickleFile, RATRootFile, ZDABFile, OrcaJSONStream, ZDABDispatch
-from websno.store import MemoryStore, CouchDBStore, CrateSlotStore
-
+from websno.stream import EventPickleFile, RATRootFile, ZDABFile, OrcaJSONStream, ZDABDispatch, CouchDBChanges
+from websno.store import MemoryStore, CouchDBStore, CrateSlotStore, RackStore
 from websno.apps.websnoed import EventViewerNamespace
+
+from websno.record import Record
+
 if __name__ == '__main__':
     # event source
     if len(sys.argv) > 1:
         if sys.argv[1].endswith('.pickle'):
-            websno.event_source = EventPickleFile(sys.argv[1], EventViewerNamespace.broadcast_event)
+            event_stream = EventPickleFile(sys.argv[1])
         elif sys.argv[1].endswith('.root'):    
-            websno.event_source = RATRootFile(sys.argv[1], EventViewerNamespace.broadcast_event)
+            event_stream = RATRootFile(sys.argv[1])
         elif sys.argv[1].endswith('.zdab'):
-            websno.event_source = ZDABFile(sys.argv[1], EventViewerNamespace.broadcast_event)
+            event_stream = ZDABFile(sys.argv[1])
         else:
-            websno.event_source = ZDABDispatch(sys.argv[1], EventViewerNamespace.broadcast_event)
+            event_stream = ZDABDispatch(sys.argv[1])
 
-    if websno.event_source:
-        if hasattr(websno.event_source, 'get'):
-            EventViewerNamespace.event_getter = websno.event_source.get
-        websno.event_source.start()
+    if event_stream:
+        if hasattr(event_stream, 'get'):
+            EventViewerNamespace.event_getter = event_stream.get
 
-    # data storage backend
-    #websno.data_store = CouchDBStore('http://localhost:5984', 'ss')
-    #websno.data_store = MemoryStore()
-    websno.data_store = CrateSlotStore()
+    # data stores
+    crate_slot_store = CrateSlotStore()
+    rack_store = RackStore()
 
-    # other data sources
-    #orca_json = OrcaJSONStream('tcp://localhost:5028', websno.data_store.set)
-    #websno.data_sources.append(orca_json)
-    #orca_json.start()
+    # data streams
+    ios_stream = CouchDBChanges('http://localhost:5984', 'iostemp')
+
+    # record types
+    websno.records = {
+        'event_data': Record('event_data', event_stream),
+        'rack_voltages': Record('rack_voltages', ios_stream, rack_store)
+    }
+
+    # start streams
+    event_stream.start()
+    ios_stream.start()
 
     # start web/socket server
     websno.server.serve()
 
     # wait for threads to exit
-    websno.event_source.join()
-    for source in websno.data_sources:
-        source.join()
+    event_stream.join()
+    ios_stream.join()
 

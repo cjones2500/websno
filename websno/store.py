@@ -4,15 +4,12 @@ These may store data however they like, but present a dict-like interface
 to the user.
 '''
 
-import json
-import uuid
 import bisect
 
 class DataStore:
     '''Base class for data storage interfaces'''
     def __init__(self):
         pass
-
 
 class MemoryStore(DataStore):
     '''Hold queues in memory'''
@@ -41,6 +38,22 @@ class MemoryStore(DataStore):
             l = filter(lambda x: x[0]>interval[0] and x[0]<interval[1], l)
 
         return l
+
+
+class RackStore(DataStore):
+    '''Hold per-rack data in memory'''
+    def __init__(self):
+        DataStore.__init__(self)
+
+        self._store = [{} for i in range(19)]
+
+    def set(self, o):
+        rack = o['rack']
+        self._store[rack].setdefault(o['key'], []).append([o['timestamp'], o['value']])
+
+    def get(self, rack, key):
+        return self._store[rack].get(key, {})
+
 
 class CrateSlotStore(DataStore):
     '''Hold queues in lists'''
@@ -79,7 +92,6 @@ class CrateSlotStore(DataStore):
                 idx_in = bisect.bisect_left(crate['ts'], o['ts'])
                 crate['ts'].insert(idx_in, o['ts'])
                 crate['v'].insert(idx_in, o['v'])
-
 
     def get(self, key, dic):
         #todo: redo
@@ -127,6 +139,7 @@ class CrateSlotStore(DataStore):
                 l.append(lc)
 
         return l
+
 
 class CouchDBStore(DataStore):
     '''Store queues in a CouchDB database'''
@@ -176,6 +189,8 @@ class CouchDBStore(DataStore):
 class CouchBaseStore(DataStore):
     '''Store queues in a CouchBase DB'''
     def __init__(self, host, username, password, bucket_name='default'):
+        raise Exception('CouchBaseStore not implemented')
+
         DataStore.__init__(self)
 
         self.host = host

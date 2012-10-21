@@ -1,8 +1,9 @@
 import json
 from socketio.namespace import BaseNamespace
 
+import websno
+
 class EventViewerNamespace(BaseNamespace):
-    _registry = {}
     event_getter = None
 
     def on_initialize(self, subscriptions=[]):
@@ -12,7 +13,7 @@ class EventViewerNamespace(BaseNamespace):
         }
         self.user_control = False
         self.event_index = 0
-        EventViewerNamespace._registry[id(self)] = self
+        websno.records['event_data'].subscribe(self, self.emit_event, self.filter_event)
         print 'INIT', id(self)
 
     def on_control_back(self):
@@ -45,22 +46,16 @@ class EventViewerNamespace(BaseNamespace):
 
     def recv_disconnect(self):
         print 'DISCONNECT', id(self)
-        del EventViewerNamespace._registry[id(self)]
+        websno.records['event_data'].unsubscribe(self)
         self.disconnect(silent=True)
 
     def recv_message(self, message):
         print "PING!!!", message
 
-    @classmethod
-    def broadcast_event(self, idx, ev):
-        '''send an event to all connected clients that want them'''
-        for s in filter(lambda x: not x.user_control, EventViewerNamespace._registry.values()):
-            if not ev['nhit'] >= s.settings['nhit_threshold']:
-                continue
+    def filter_event(self, i, ev):
+        return ev['nhit'] >= self.settings['nhit_threshold'] and (ev['trig'] & self.settings['trigger_type'])
 
-            if not (ev['trig'] & s.settings['trigger_type']):
-                continue
-
-            s.event_index = idx
-            s.emit('event', json.dumps(ev))
+    def emit_event(self, i, ev):
+        '''send an event to the client'''
+        self.emit('event', json.dumps(ev))
 
