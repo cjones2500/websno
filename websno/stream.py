@@ -313,6 +313,15 @@ class CouchDBChanges(InputStream):
         for change in self.db.changes(include_docs=True, heartbeat=50000, feed='continuous'):
             doc = change['doc']
 
+            if not 'type' in doc:
+                continue
+
             if doc['type'] == 'rack_low_voltage':
-                websno.records['rack_low_voltage'].set(o)
+                for v in ['vcc']:
+                    d = {
+                        'key': v,
+                        'timestamp': doc['timestamp'],
+                        'value': doc[v]
+                    }
+                    websno.records['rack_low_voltage'].set(doc['rack'], d)
 

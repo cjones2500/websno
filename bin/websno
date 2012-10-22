@@ -13,6 +13,7 @@ from websno.record import Record
 
 if __name__ == '__main__':
     # event source
+    event_stream = None
     if len(sys.argv) > 1:
         if sys.argv[1].endswith('.pickle'):
             event_stream = EventPickleFile(sys.argv[1])
@@ -37,11 +38,12 @@ if __name__ == '__main__':
     # record types
     websno.records = {
         'event_data': Record('event_data', event_stream),
-        'rack_voltages': Record('rack_voltages', ios_stream, rack_store)
+        'rack_low_voltage': Record('rack_low_voltage', ios_stream, rack_store)
     }
 
     # start streams
-    event_stream.start()
+    if event_stream:
+        event_stream.start()
     ios_stream.start()
 
     # start web/socket server

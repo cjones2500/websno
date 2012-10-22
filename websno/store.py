@@ -47,9 +47,9 @@ class RackStore(DataStore):
 
         self._store = [{} for i in range(19)]
 
-    def set(self, o):
-        rack = o['rack']
-        self._store[rack].setdefault(o['key'], []).append([o['timestamp'], o['value']])
+    def set(self, rack, o):
+        for k in o:
+            self._store[rack].setdefault(o['key'], []).append([o['timestamp'], o['value']])
 
     def get(self, rack, key):
         return self._store[rack].get(key, {})
