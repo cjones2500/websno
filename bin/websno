@@ -6,7 +6,7 @@ import websno
 
 import websno.server
 from websno.stream import EventPickleFile, RATRootFile, ZDABFile, OrcaJSONStream, ZDABDispatch, CouchDBChanges
-from websno.store import MemoryStore, CouchDBStore, CrateSlotStore, RackStore
+from websno.store import RackStore, CrateStore, SlotStore
 from websno.apps.websnoed import EventViewerNamespace
 
 from websno.record import Record
@@ -24,27 +24,33 @@ if __name__ == '__main__':
         else:
             event_stream = ZDABDispatch(sys.argv[1])
 
-    if event_stream:
-        if hasattr(event_stream, 'get'):
-            EventViewerNamespace.event_getter = event_stream.get
-
     # data stores
-    crate_slot_store = CrateSlotStore()
     rack_store = RackStore()
+    crate_store = CrateStore()
+    slot_store = SlotStore()
 
     # data streams
     ios_stream = CouchDBChanges('http://localhost:5984', 'iostemp')
+    orca_json_stream = OrcaJSONStream('localhost')
 
     # record types
     websno.records = {
-        'event_data': Record('event_data', event_stream),
+        'event_data': Record('event_data', event_stream) if event_stream else None,
+        'pmt_base_current': Record('pmt_base_current', orca_json_stream, slot_store),
+        'cmos_rate': Record('cmos_rate', orca_json_stream, slot_store),
+        'fec_vlt': Record('fec_vlt', orca_json_stream, slot_store),
+        'xl3_vlt': Record('xl3_vlt', orca_json_stream, crate_store),
+        'fifo_stats': Record('fifo_stats', orca_json_stream, crate_store),
         'rack_low_voltage': Record('rack_low_voltage', ios_stream, rack_store)
     }
 
     # start streams
     if event_stream:
+        if hasattr(event_stream, 'get'):
+            EventViewerNamespace.event_getter = event_stream.get
         event_stream.start()
     ios_stream.start()
+    orca_json_stream.start()
 
     # start web/socket server
     websno.server.serve()

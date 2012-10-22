@@ -40,19 +40,55 @@ class MemoryStore(DataStore):
         return l
 
 
-class RackStore(DataStore):
+class RackStore(MemoryStore):
     '''Hold per-rack data in memory'''
     def __init__(self):
         DataStore.__init__(self)
-
-        self._store = [{} for i in range(19)]
+        self._store = [{} for i in range(11)]
 
     def set(self, rack, o):
         for k in o:
             self._store[rack].setdefault(o['key'], []).append([o['timestamp'], o['value']])
 
     def get(self, rack, key):
-        return self._store[rack].get(key, {})
+        d = self._store[rack].get(key, {})
+        if interval:
+            d = dict(filter(lambda x: x[0]>interval[0] and x[0]<interval[1], d.iteritems()))
+        return d
+
+
+class CrateStore(MemoryStore):
+    '''Hold per-crate data in memory'''
+    def __init__(self):
+        DataStore.__init__(self)
+        self._store = [{} for i in range(19)]
+
+    def set(self, crate, o):
+        for k in o:
+            self._store[crate].setdefault(o['key'], []).append([o['timestamp'], o['value']])
+
+    def get(self, crate, key):
+        d = self._store[crate].get(key, {})
+        if interval:
+            d = dict(filter(lambda x: x[0]>interval[0] and x[0]<interval[1], d.iteritems()))
+        return d
+
+
+class SlotStore(MemoryStore):
+    '''Hold per-slot data in memory'''
+    def __init__(self):
+        DataStore.__init__(self)
+        self._store = [[{}] * 16] * 19
+
+    def set(self, crate, slot, o):
+        for k in o:
+            self._store[crate][slot].setdefault(o['key'], []).append([o['timestamp'], o['value']])
+
+    def get(self, crate, slot, key):
+        d = self._store[crate][slot].get(key, {})
+        if interval:
+            d = dict(filter(lambda x: x[0]>interval[0] and x[0]<interval[1], d.iteritems()))
+        return d
 
 
 class CrateSlotStore(DataStore):
